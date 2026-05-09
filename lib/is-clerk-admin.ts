@@ -16,7 +16,7 @@ export async function isClerkUserAdmin(userId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from("profiles")
     .select("role")
-    .eq("user_id", userId)
+    .eq("id", String(userId))
     .maybeSingle()
 
   if (error || !data) return false

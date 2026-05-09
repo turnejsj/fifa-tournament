@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
-import { TournamentNavbarShell } from "@/components/tournament/tournament-navbar-shell"
+import { TournamentNavbar } from "@/components/tournament/navbar"
 import { getTeams } from "@/lib/tournament-store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -20,7 +20,7 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      <TournamentNavbarShell />
+      <TournamentNavbar />
       <main className="mx-auto w-full max-w-3xl px-4 py-8">
         <Card className="border-border bg-card/80">
           <CardHeader>

@@ -1,16 +1,54 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { SignInButton, UserButton, useAuth } from "@clerk/nextjs"
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser"
 
-type TournamentNavbarProps = {
-  /** True when Supabase `profiles.role` is `admin` for the signed-in Clerk user. */
-  showDashboard?: boolean
-}
+export function TournamentNavbar() {
+  const { user, isLoaded } = useUser()
+  const [isAdmin, setIsAdmin] = useState(false)
 
-export function TournamentNavbar({ showDashboard = false }: TournamentNavbarProps) {
-  const { isSignedIn } = useAuth()
+  useEffect(() => {
+    if (!isLoaded) return
+
+    const clerkId = user?.id
+    if (!clerkId) {
+      setIsAdmin(false)
+      return
+    }
+
+    const idString = String(clerkId)
+    console.log("[TournamentNavbar] Clerk user.id:", idString)
+
+    const supabase = createBrowserSupabaseClient()
+    if (!supabase) {
+      console.warn("[TournamentNavbar] Supabase browser client unavailable (missing env)")
+      setIsAdmin(false)
+      return
+    }
+
+    let cancelled = false
+
+    void supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", idString)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return
+        const role = data?.role ?? null
+        console.log("[TournamentNavbar] profiles role (fetched):", role, error ? error.message : null)
+        setIsAdmin(role === "admin")
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isLoaded, user?.id])
+
+  const isSignedIn = Boolean(user)
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/80 bg-[#060606]/90 backdrop-blur-md">
@@ -26,7 +64,7 @@ export function TournamentNavbar({ showDashboard = false }: TournamentNavbarProp
           <Button asChild variant="ghost" className="text-zinc-200 hover:text-white">
             <Link href="/submit-score">Submit Score</Link>
           </Button>
-          {showDashboard && (
+          {isAdmin && (
             <Button asChild variant="ghost" className="text-zinc-200 hover:text-white">
               <Link href="/admin">Dashboard</Link>
             </Button>

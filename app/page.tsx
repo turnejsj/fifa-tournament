@@ -1,5 +1,5 @@
 import { LeagueTable } from "@/components/tournament/league-table"
-import { TournamentNavbarShell } from "@/components/tournament/tournament-navbar-shell"
+import { TournamentNavbar } from "@/components/tournament/navbar"
 import { getLeagueTable } from "@/lib/tournament-store"
 
 function formatLoadError(e: unknown): string {
@@ -22,7 +22,7 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      <TournamentNavbarShell />
+      <TournamentNavbar />
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8">
         {tableError && (
           <div
