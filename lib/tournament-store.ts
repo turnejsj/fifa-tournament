@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache"
 import { createClient } from "@supabase/supabase-js"
 
 export type Team = {
@@ -55,7 +56,9 @@ export function createServiceSupabaseClient() {
   })
 }
 
+/** Rows from `public.teams` — the single source of truth for team ids and display names. */
 export async function getTeams() {
+  noStore()
   const supabase = createServiceSupabaseClient()
   const { data, error } = await supabase.from("teams").select("id,name").order("name")
 
@@ -64,6 +67,7 @@ export async function getTeams() {
 }
 
 export async function getMatches(status?: MatchStatus) {
+  noStore()
   const supabase = createServiceSupabaseClient()
   let query = supabase.from("matches").select("*").order("created_at", { ascending: false })
 
@@ -86,6 +90,7 @@ export async function getTeamMap() {
 
 /** Maps `teams.name` → display string for Manager column (profiles.full_name, comma-separated). */
 export async function getManagerNamesByTournamentTeam(): Promise<Record<string, string>> {
+  noStore()
   const supabase = createServiceSupabaseClient()
   const { data, error } = await supabase
     .from("profiles")

@@ -3,6 +3,9 @@ import { PlayerTournamentDetailsForm } from "@/components/tournament/player-tour
 import { TournamentNavbar } from "@/components/tournament/navbar"
 import { getLeagueTable } from "@/lib/tournament-store"
 
+/** Always read the latest `teams` names and standings from Supabase (no static stale snapshot). */
+export const dynamic = "force-dynamic"
+
 function formatLoadError(e: unknown): string {
   if (e instanceof Error) return e.message
   if (typeof e === "object" && e !== null && "message" in e) {

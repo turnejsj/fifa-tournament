@@ -96,7 +96,7 @@ export function TournamentNavbar() {
           href="/"
           className="min-w-0 shrink truncate text-xs font-semibold tracking-wide text-zinc-100 sm:text-sm"
         >
-          EA FC 25 Tournament
+          EA FC 26 Tournament
         </Link>
 
         <nav className="hidden min-w-0 items-center gap-1 md:flex md:gap-2">

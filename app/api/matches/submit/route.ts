@@ -24,6 +24,23 @@ export async function POST(request: Request) {
   }
 
   const supabase = createServiceSupabaseClient()
+
+  const { data: existingTeams, error: teamsLookupError } = await supabase
+    .from("teams")
+    .select("id")
+    .in("id", [homeTeam, awayTeam])
+
+  if (teamsLookupError) {
+    return NextResponse.json({ error: teamsLookupError.message }, { status: 500 })
+  }
+  const foundIds = new Set((existingTeams ?? []).map((r) => r.id))
+  if (foundIds.size !== 2 || !foundIds.has(homeTeam) || !foundIds.has(awayTeam)) {
+    return NextResponse.json(
+      { error: "Choose two valid teams from the list (IDs must exist in the teams table)." },
+      { status: 400 }
+    )
+  }
+
   const insertResult = await supabase.from("matches").insert({
     home_team_id: homeTeam,
     away_team_id: awayTeam,
