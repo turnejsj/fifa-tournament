@@ -35,10 +35,12 @@ export default async function AdminPage() {
   )
 
   return (
-    <div className="min-h-screen bg-[#050505]">
+    <div className="min-h-screen min-w-0 bg-[#050505]">
       <TournamentNavbar />
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8">
-        <h1 className="text-2xl font-bold text-white">Admin — pending matches</h1>
+      <main className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-4 px-3 py-6 sm:px-4 sm:py-8">
+        <h1 className="text-xl font-bold leading-tight text-white sm:text-2xl">
+          Admin — pending matches
+        </h1>
         <p className="text-sm text-zinc-400">
           Approve a result to include it in the live league table. Reject if the score line is
           wrong.

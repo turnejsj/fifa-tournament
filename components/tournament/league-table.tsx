@@ -14,13 +14,14 @@ type LeagueTableProps = {
 
 export function LeagueTable({ rows }: LeagueTableProps) {
   return (
-    <div className="rounded-xl border border-border bg-card/70 p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">Live League Table</h2>
-        <p className="text-xs text-zinc-400">Approved matches only</p>
+    <div className="w-full min-w-0 rounded-xl border border-border bg-card/70 p-3 sm:p-4">
+      <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+        <h2 className="text-base font-semibold text-white sm:text-lg">Live League Table</h2>
+        <p className="shrink-0 text-xs text-zinc-400">Approved matches only</p>
       </div>
 
-      <Table>
+      <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+        <Table className="min-w-[640px]">
         <TableHeader>
           <TableRow className="border-border">
             <TableHead className="w-10">#</TableHead>
@@ -54,6 +55,7 @@ export function LeagueTable({ rows }: LeagueTableProps) {
           ))}
         </TableBody>
       </Table>
+      </div>
     </div>
   )
 }

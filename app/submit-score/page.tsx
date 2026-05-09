@@ -19,12 +19,12 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
   const teams = await getTeams()
 
   return (
-    <div className="min-h-screen bg-[#050505]">
+    <div className="min-h-screen min-w-0 bg-[#050505]">
       <TournamentNavbar />
-      <main className="mx-auto w-full max-w-3xl px-4 py-8">
+      <main className="mx-auto w-full min-w-0 max-w-3xl px-3 py-6 sm:px-4 sm:py-8">
         <Card className="border-border bg-card/80">
-          <CardHeader>
-            <CardTitle className="text-white">Submit Match Score</CardTitle>
+          <CardHeader className="space-y-2 p-4 sm:p-6">
+            <CardTitle className="text-lg text-white sm:text-xl">Submit Match Score</CardTitle>
             <p className="text-sm text-zinc-400">
               Enter the result. It stays pending until an admin approves it; then it appears on
               the league table.
@@ -35,9 +35,9 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
               </p>
             )}
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
             <form action="/api/matches/submit" method="post" className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="homeTeam">Home Team</Label>
                   <select
@@ -72,7 +72,7 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="homeScore">Home Score</Label>
                   <Input id="homeScore" type="number" min={0} name="homeScore" required />

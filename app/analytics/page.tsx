@@ -91,9 +91,9 @@ export default function AnalyticsPage() {
   }, [filteredDbTrades])
 
   return (
-    <div className="flex min-h-screen bg-[#050505]">
+    <div className="flex min-h-screen min-w-0 overflow-x-hidden bg-[#050505]">
       <Sidebar />
-      <div className="flex-1 md:ml-64">
+      <div className="min-w-0 flex-1 md:ml-64">
         <Header />
         <main className="p-3 md:p-6">
           <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-12">

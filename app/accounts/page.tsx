@@ -107,9 +107,9 @@ export default function AccountsPage() {
   }, [trades])
 
   return (
-    <div className="flex min-h-screen bg-[#050505] text-white">
+    <div className="flex min-h-screen min-w-0 overflow-x-hidden bg-[#050505] text-white">
       <Sidebar />
-      <div className="flex-1 md:ml-64">
+      <div className="min-w-0 flex-1 md:ml-64">
         <Header />
         <main className="space-y-6 bg-[#050505] p-3 md:p-6">
           <section className="grid grid-cols-1 gap-4 md:grid-cols-3">

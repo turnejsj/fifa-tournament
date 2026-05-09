@@ -6,14 +6,6 @@ import { CopyGamerTagButton } from "@/components/tournament/copy-gamer-tag-butto
 import { PlayerNameAdminEditor } from "@/components/tournament/player-name-admin-editor"
 import { PlatformBadge } from "@/components/tournament/platform-badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
 
 function dash(s: string | null | undefined) {
@@ -23,6 +15,46 @@ function dash(s: string | null | undefined) {
 
 function playerDisplayName(fullName: string | null | undefined): string {
   return fullName?.trim() ? fullName.trim() : "Anonymous Player"
+}
+
+function PlayerProfileCard({
+  player: p,
+  isAdmin,
+  onNameSaved,
+}: {
+  player: PlayerProfileRow
+  isAdmin: boolean
+  onNameSaved: (profileId: string, fullName: string) => void
+}) {
+  return (
+    <div className="flex min-w-0 flex-col rounded-lg border border-border bg-[#0a0a0a] p-4 shadow-sm">
+      <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">Player name</div>
+      <div className="mt-1 min-w-0 font-semibold text-white">
+        {isAdmin ? (
+          <PlayerNameAdminEditor
+            profileId={p.id}
+            initialName={p.full_name}
+            onSaved={(name) => onNameSaved(p.id, name)}
+          />
+        ) : (
+          playerDisplayName(p.full_name)
+        )}
+      </div>
+      <div className="mt-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
+        Tournament team
+      </div>
+      <div className="mt-1 text-white">{dash(p.tournament_team)}</div>
+      <div className="mt-3 text-xs font-medium uppercase tracking-wide text-zinc-500">Platform</div>
+      <div className="mt-1">
+        <PlatformBadge platform={p.platform} />
+      </div>
+      <div className="mt-3 text-xs font-medium uppercase tracking-wide text-zinc-500">Gamer tag</div>
+      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
+        <span className="min-w-0 break-all font-mono text-sm text-zinc-100">{dash(p.gamer_tag)}</span>
+        {p.gamer_tag?.trim() ? <CopyGamerTagButton gamerTag={p.gamer_tag.trim()} /> : null}
+      </div>
+    </div>
+  )
 }
 
 export function PlayerDirectoryClient() {
@@ -41,7 +73,11 @@ export function PlayerDirectoryClient() {
         const res = await fetch("/api/players/directory")
         let json: { players?: PlayerProfileRow[]; isAdmin?: boolean; error?: string }
         try {
-          json = (await res.json()) as { players?: PlayerProfileRow[]; error?: string }
+          json = (await res.json()) as {
+            players?: PlayerProfileRow[]
+            isAdmin?: boolean
+            error?: string
+          }
         } catch (parseErr) {
           console.error(parseErr)
           if (!cancelled) {
@@ -122,109 +158,20 @@ export function PlayerDirectoryClient() {
           ) : null}
 
           {players.length > 0 && (
-            <>
-              <div className="grid gap-3 p-4 md:hidden">
-                {players.map((p) => (
-                  <div
-                    key={p.id}
-                    className="rounded-lg border border-border bg-[#0a0a0a] p-4 shadow-sm"
-                  >
-                    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                      Player name
-                    </div>
-                    <div className="mt-1 font-semibold text-white">
-                      {isAdmin ? (
-                        <PlayerNameAdminEditor
-                          profileId={p.id}
-                          initialName={p.full_name}
-                          onSaved={(name) =>
-                            setPlayers((prev) =>
-                              prev.map((row) =>
-                                row.id === p.id ? { ...row, full_name: name } : row
-                              )
-                            )
-                          }
-                        />
-                      ) : (
-                        playerDisplayName(p.full_name)
-                      )}
-                    </div>
-                    <div className="mt-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
-                      Tournament team
-                    </div>
-                    <div className="mt-1 text-white">{dash(p.tournament_team)}</div>
-                    <div className="mt-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
-                      Platform
-                    </div>
-                    <div className="mt-1">
-                      <PlatformBadge platform={p.platform} />
-                    </div>
-                    <div className="mt-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
-                      Gamer tag
-                    </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-sm text-zinc-100">{dash(p.gamer_tag)}</span>
-                      {p.gamer_tag?.trim() ? (
-                        <CopyGamerTagButton gamerTag={p.gamer_tag.trim()} />
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="hidden overflow-x-auto md:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="text-zinc-400">Player name</TableHead>
-                      <TableHead className="text-zinc-400">Tournament team</TableHead>
-                      <TableHead className="text-zinc-400">Platform</TableHead>
-                      <TableHead className="min-w-[180px] text-zinc-400">Gamer tag</TableHead>
-                      <TableHead className="w-[100px] text-right text-zinc-400" />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {players.map((p) => (
-                      <TableRow key={p.id} className="border-border">
-                        <TableCell className="min-w-[200px] font-medium text-white">
-                          {isAdmin ? (
-                            <PlayerNameAdminEditor
-                              profileId={p.id}
-                              initialName={p.full_name}
-                              onSaved={(name) =>
-                                setPlayers((prev) =>
-                                  prev.map((row) =>
-                                    row.id === p.id ? { ...row, full_name: name } : row
-                                  )
-                                )
-                              }
-                            />
-                          ) : (
-                            playerDisplayName(p.full_name)
-                          )}
-                        </TableCell>
-                        <TableCell className="text-zinc-200">{dash(p.tournament_team)}</TableCell>
-                        <TableCell>
-                          <PlatformBadge platform={p.platform} />
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-mono text-sm text-zinc-100">
-                            {dash(p.gamer_tag)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {p.gamer_tag?.trim() ? (
-                            <CopyGamerTagButton gamerTag={p.gamer_tag.trim()} />
-                          ) : (
-                            <span className="text-xs text-zinc-600">—</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
+            <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-3">
+              {players.map((p) => (
+                <PlayerProfileCard
+                  key={p.id}
+                  player={p}
+                  isAdmin={isAdmin}
+                  onNameSaved={(id, name) =>
+                    setPlayers((prev) =>
+                      prev.map((row) => (row.id === id ? { ...row, full_name: name } : row))
+                    )
+                  }
+                />
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
