@@ -6,6 +6,9 @@
 create table if not exists public.profiles (
   id text primary key,
   role text not null default 'user' check (role in ('user', 'admin')),
+  tournament_team text,
+  platform text,
+  gamer_tag text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ClerkProvider } from '@clerk/nextjs'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 const geistSans = Geist({
@@ -48,6 +49,7 @@ export default function RootLayout({
       >
         <ClerkProvider>
           {children}
+          <Toaster theme="dark" richColors position="top-center" />
           {process.env.NODE_ENV === 'production' && <Analytics />}
         </ClerkProvider>
       </body>

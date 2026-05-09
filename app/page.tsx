@@ -1,4 +1,5 @@
 import { LeagueTable } from "@/components/tournament/league-table"
+import { PlayerTournamentDetailsForm } from "@/components/tournament/player-tournament-details-form"
 import { TournamentNavbar } from "@/components/tournament/navbar"
 import { getLeagueTable } from "@/lib/tournament-store"
 
@@ -33,6 +34,7 @@ export default async function LandingPage() {
             <p className="mt-1 text-muted-foreground">{tableError}</p>
           </div>
         )}
+        <PlayerTournamentDetailsForm />
         <section className="rounded-xl border border-border bg-gradient-to-br from-[#0b0b0b] to-[#111112] p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-[#00F081]">
             Official Competition Center

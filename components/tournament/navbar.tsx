@@ -64,6 +64,9 @@ export function TournamentNavbar() {
           <Button asChild variant="ghost" className="text-zinc-200 hover:text-white">
             <Link href="/submit-score">Submit Score</Link>
           </Button>
+          <Button asChild variant="ghost" className="text-zinc-200 hover:text-white">
+            <Link href="/players">Find Players</Link>
+          </Button>
           {isAdmin && (
             <Button asChild variant="ghost" className="text-zinc-200 hover:text-white">
               <Link href="/admin">Dashboard</Link>
