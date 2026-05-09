@@ -44,6 +44,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: uploadResult.error.message }, { status: 500 })
   }
 
+  const now = new Date().toISOString()
   const insertResult = await supabase.from("matches").insert({
     home_team_id: homeTeam,
     away_team_id: awayTeam,
@@ -51,7 +52,9 @@ export async function POST(request: Request) {
     away_score: awayScore,
     screenshot_path: filePath,
     submitted_by: userId,
-    status: "pending",
+    status: "approved",
+    approved_at: now,
+    reviewed_by: userId,
   })
 
   if (insertResult.error) {
@@ -59,6 +62,5 @@ export async function POST(request: Request) {
   }
 
   revalidatePath("/")
-  revalidatePath("/admin")
   return NextResponse.redirect(new URL("/submit-score?submitted=1", request.url))
 }

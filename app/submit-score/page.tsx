@@ -17,26 +17,21 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
   const params = await searchParams
 
   const teams = await getTeams()
-  const adminIds = (process.env.ADMIN_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean)
-  const isAdmin = adminIds.includes(userId)
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      <TournamentNavbar isAdmin={isAdmin} />
+      <TournamentNavbar />
       <main className="mx-auto w-full max-w-3xl px-4 py-8">
         <Card className="border-border bg-card/80">
           <CardHeader>
             <CardTitle className="text-white">Submit Match Score</CardTitle>
             <p className="text-sm text-zinc-400">
-              Upload the final score screenshot. Results appear in the table after admin
-              approval.
+              Enter the result and attach a screenshot. The league table updates as soon as
+              you submit.
             </p>
             {params.submitted === "1" && (
               <p className="rounded-md border border-[#00F081]/30 bg-[#00F081]/10 px-3 py-2 text-sm text-[#00F081]">
-                Match submitted successfully. Awaiting admin review.
+                Match submitted successfully. Your result is now on the league table.
               </p>
             )}
           </CardHeader>
@@ -94,12 +89,12 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="proof">Screenshot Proof</Label>
+                <Label htmlFor="proof">Screenshot</Label>
                 <Input id="proof" type="file" name="proof" accept="image/*" required />
               </div>
 
               <Button type="submit" className="w-full bg-[#00F081] text-black hover:bg-[#00d874]">
-                Submit for Approval
+                Submit result
               </Button>
             </form>
           </CardContent>

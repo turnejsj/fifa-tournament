@@ -36,23 +36,13 @@ export type LeagueRow = {
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-function ensureEnv() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY")
-  }
-}
-
-export function createPublicSupabaseClient() {
-  ensureEnv()
-  return createClient(supabaseUrl!, supabaseAnonKey!)
-}
 
 export function createServiceSupabaseClient() {
   if (!supabaseUrl || !supabaseServiceRole) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY")
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY (required for tournament data on the server)"
+    )
   }
 
   return createClient(supabaseUrl, supabaseServiceRole, {
@@ -64,42 +54,27 @@ export function createServiceSupabaseClient() {
 }
 
 export async function getTeams() {
-  const supabase = createPublicSupabaseClient()
+  const supabase = createServiceSupabaseClient()
   const { data, error } = await supabase.from("teams").select("id,name").order("name")
 
   if (error) throw error
   return (data ?? []) as Team[]
 }
 
-export async function getMatches(status?: MatchStatus) {
+async function getApprovedMatches(): Promise<MatchRecord[]> {
   const supabase = createServiceSupabaseClient()
-  let query = supabase
+  const { data, error } = await supabase
     .from("matches")
     .select("*")
+    .eq("status", "approved")
     .order("created_at", { ascending: false })
 
-  if (status) {
-    query = query.eq("status", status)
-  }
-
-  const { data, error } = await query
   if (error) throw error
   return (data ?? []) as MatchRecord[]
 }
 
-export async function getTeamMap() {
-  const teams = await getTeams()
-  return teams.reduce<Record<string, string>>((acc, team) => {
-    acc[team.id] = team.name
-    return acc
-  }, {})
-}
-
 export async function getLeagueTable() {
-  const [teams, approvedMatches] = await Promise.all([
-    getTeams(),
-    getMatches("approved"),
-  ])
+  const [teams, approvedMatches] = await Promise.all([getTeams(), getApprovedMatches()])
 
   const rows: Record<string, LeagueRow> = {}
 

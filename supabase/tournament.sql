@@ -38,3 +38,19 @@ on conflict (name) do nothing;
 insert into storage.buckets (id, name, public)
 values ('match-screenshots', 'match-screenshots', true)
 on conflict (id) do nothing;
+
+-- Public read for league table (optional if all reads use service role on the server)
+alter table public.teams enable row level security;
+alter table public.matches enable row level security;
+
+drop policy if exists "Public read teams" on public.teams;
+create policy "Public read teams"
+  on public.teams for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "Public read approved matches" on public.matches;
+create policy "Public read approved matches"
+  on public.matches for select
+  to anon, authenticated
+  using (status = 'approved');

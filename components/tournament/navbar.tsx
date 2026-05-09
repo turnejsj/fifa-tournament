@@ -4,11 +4,7 @@ import Link from "next/link"
 import { SignInButton, UserButton, useAuth } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 
-type TournamentNavbarProps = {
-  isAdmin?: boolean
-}
-
-export function TournamentNavbar({ isAdmin = false }: TournamentNavbarProps) {
+export function TournamentNavbar() {
   const { isSignedIn } = useAuth()
 
   return (
@@ -25,11 +21,6 @@ export function TournamentNavbar({ isAdmin = false }: TournamentNavbarProps) {
           <Button asChild variant="ghost" className="text-zinc-200 hover:text-white">
             <Link href="/submit-score">Submit Score</Link>
           </Button>
-          {isAdmin && (
-            <Button asChild variant="ghost" className="text-zinc-200 hover:text-white">
-              <Link href="/admin">Admin</Link>
-            </Button>
-          )}
 
           {!isSignedIn && (
             <SignInButton mode="modal">

@@ -1,28 +1,28 @@
-import { auth } from "@clerk/nextjs/server"
 import { LeagueTable } from "@/components/tournament/league-table"
 import { TournamentNavbar } from "@/components/tournament/navbar"
 import { getLeagueTable } from "@/lib/tournament-store"
 
-export default async function LandingPage() {
-  const { userId } = await auth()
-  const adminIds = (process.env.ADMIN_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean)
-  const isAdmin = Boolean(userId && adminIds.includes(userId))
+function formatLoadError(e: unknown): string {
+  if (e instanceof Error) return e.message
+  if (typeof e === "object" && e !== null && "message" in e) {
+    const m = (e as { message: unknown }).message
+    if (typeof m === "string" && m.length > 0) return m
+  }
+  return "Could not load league table from Supabase."
+}
 
+export default async function LandingPage() {
   let table: Awaited<ReturnType<typeof getLeagueTable>> = []
   let tableError: string | null = null
   try {
     table = await getLeagueTable()
   } catch (e) {
-    tableError =
-      e instanceof Error ? e.message : "Could not load league table from Supabase."
+    tableError = formatLoadError(e)
   }
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      <TournamentNavbar isAdmin={isAdmin} />
+      <TournamentNavbar />
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8">
         {tableError && (
           <div
@@ -39,8 +39,8 @@ export default async function LandingPage() {
           </p>
           <h1 className="mt-2 text-3xl font-bold text-white">FIFA Tournament</h1>
           <p className="mt-2 max-w-2xl text-zinc-400">
-            Track standings in real-time as approved results come in. Players can submit
-            match scores with proof screenshots, and admins can verify every result.
+            Track standings in real time. Logged-in players submit match results and a
+            screenshot; scores count toward the table immediately.
           </p>
         </section>
 
