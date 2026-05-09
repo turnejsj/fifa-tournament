@@ -61,20 +61,30 @@ export async function getTeams() {
   return (data ?? []) as Team[]
 }
 
-async function getApprovedMatches(): Promise<MatchRecord[]> {
+export async function getMatches(status?: MatchStatus) {
   const supabase = createServiceSupabaseClient()
-  const { data, error } = await supabase
-    .from("matches")
-    .select("*")
-    .eq("status", "approved")
-    .order("created_at", { ascending: false })
+  let query = supabase.from("matches").select("*").order("created_at", { ascending: false })
 
+  if (status) {
+    query = query.eq("status", status)
+  }
+
+  const { data, error } = await query
   if (error) throw error
   return (data ?? []) as MatchRecord[]
 }
 
+export async function getTeamMap() {
+  const teams = await getTeams()
+  return teams.reduce<Record<string, string>>((acc, team) => {
+    acc[team.id] = team.name
+    return acc
+  }, {})
+}
+
+/** Standings use only approved matches (pending/rejected are excluded). */
 export async function getLeagueTable() {
-  const [teams, approvedMatches] = await Promise.all([getTeams(), getApprovedMatches()])
+  const [teams, approvedMatches] = await Promise.all([getTeams(), getMatches("approved")])
 
   const rows: Record<string, LeagueRow> = {}
 

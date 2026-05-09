@@ -24,17 +24,14 @@ export async function POST(request: Request) {
   }
 
   const supabase = createServiceSupabaseClient()
-  const now = new Date().toISOString()
   const insertResult = await supabase.from("matches").insert({
     home_team_id: homeTeam,
     away_team_id: awayTeam,
     home_score: homeScore,
     away_score: awayScore,
-    screenshot_path: null,
+    screenshot_path: "",
     submitted_by: userId,
-    status: "approved",
-    approved_at: now,
-    reviewed_by: userId,
+    status: "pending",
   })
 
   if (insertResult.error) {
@@ -42,5 +39,6 @@ export async function POST(request: Request) {
   }
 
   revalidatePath("/")
+  revalidatePath("/admin")
   return NextResponse.redirect(new URL("/submit-score?submitted=1", request.url))
 }

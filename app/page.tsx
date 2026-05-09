@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server"
 import { LeagueTable } from "@/components/tournament/league-table"
 import { TournamentNavbar } from "@/components/tournament/navbar"
 import { getLeagueTable } from "@/lib/tournament-store"
@@ -12,6 +13,13 @@ function formatLoadError(e: unknown): string {
 }
 
 export default async function LandingPage() {
+  const { userId } = await auth()
+  const adminIds = (process.env.ADMIN_USER_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean)
+  const isAdmin = Boolean(userId && adminIds.includes(userId))
+
   let table: Awaited<ReturnType<typeof getLeagueTable>> = []
   let tableError: string | null = null
   try {
@@ -22,7 +30,7 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      <TournamentNavbar />
+      <TournamentNavbar isAdmin={isAdmin} />
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8">
         {tableError && (
           <div
@@ -39,8 +47,7 @@ export default async function LandingPage() {
           </p>
           <h1 className="mt-2 text-3xl font-bold text-white">FIFA Tournament</h1>
           <p className="mt-2 max-w-2xl text-zinc-400">
-            Track standings in real time. Logged-in players submit match results and scores
-            count toward the table immediately.
+            Submissions wait for admin approval; the live table only includes approved results.
           </p>
         </section>
 

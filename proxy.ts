@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import type { NextFetchEvent, NextRequest } from 'next/server'
 
-const isProtectedRoute = createRouteMatcher(['/submit-score(.*)'])
+const isProtectedRoute = createRouteMatcher(['/submit-score(.*)', '/admin(.*)'])
 
 const clerk = clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {

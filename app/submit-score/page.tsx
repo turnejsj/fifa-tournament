@@ -17,21 +17,26 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
   const params = await searchParams
 
   const teams = await getTeams()
+  const adminIds = (process.env.ADMIN_USER_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean)
+  const isAdmin = adminIds.includes(userId)
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      <TournamentNavbar />
+      <TournamentNavbar isAdmin={isAdmin} />
       <main className="mx-auto w-full max-w-3xl px-4 py-8">
         <Card className="border-border bg-card/80">
           <CardHeader>
             <CardTitle className="text-white">Submit Match Score</CardTitle>
             <p className="text-sm text-zinc-400">
-              Choose home and away teams, enter the score, and submit. The league table
-              updates right away.
+              Enter the result. It stays pending until an admin approves it; then it appears on
+              the league table.
             </p>
             {params.submitted === "1" && (
               <p className="rounded-md border border-[#00F081]/30 bg-[#00F081]/10 px-3 py-2 text-sm text-[#00F081]">
-                Match submitted successfully. Your result is now on the league table.
+                Match submitted. Awaiting admin approval.
               </p>
             )}
           </CardHeader>

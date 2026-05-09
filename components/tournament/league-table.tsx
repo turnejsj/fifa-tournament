@@ -17,7 +17,7 @@ export function LeagueTable({ rows }: LeagueTableProps) {
     <div className="rounded-xl border border-border bg-card/70 p-4">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Live League Table</h2>
-        <p className="text-xs text-zinc-400">Submitted results</p>
+        <p className="text-xs text-zinc-400">Approved matches only</p>
       </div>
 
       <Table>

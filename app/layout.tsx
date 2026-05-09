@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'FIFA Tournament Hub',
-  description: 'Live EA FC 25 tournament table and score submission',
+  description: 'Live EA FC 25 tournament table, submissions, and admin approvals',
   icons: {
     icon: [
       {
