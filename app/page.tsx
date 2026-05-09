@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { LeagueTable } from "@/components/tournament/league-table"
 import { TournamentNavbar } from "@/components/tournament/navbar"
+import { isClerkUserAdmin } from "@/lib/is-clerk-admin"
 import { getLeagueTable } from "@/lib/tournament-store"
 
 function formatLoadError(e: unknown): string {
@@ -14,11 +15,7 @@ function formatLoadError(e: unknown): string {
 
 export default async function LandingPage() {
   const { userId } = await auth()
-  const adminIds = (process.env.ADMIN_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean)
-  const isAdmin = Boolean(userId && adminIds.includes(userId))
+  const isAdmin = Boolean(userId && (await isClerkUserAdmin(userId)))
 
   let table: Awaited<ReturnType<typeof getLeagueTable>> = []
   let tableError: string | null = null

@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { revalidatePath } from "next/cache"
 import { NextResponse } from "next/server"
+import { isClerkUserAdmin } from "@/lib/is-clerk-admin"
 import { createServiceSupabaseClient } from "@/lib/tournament-store"
 
 type RouteContext = {
@@ -15,12 +16,7 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.redirect(new URL("/", request.url))
   }
 
-  const adminIds = (process.env.ADMIN_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean)
-
-  if (!adminIds.includes(userId)) {
+  if (!(await isClerkUserAdmin(userId))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
   }
 

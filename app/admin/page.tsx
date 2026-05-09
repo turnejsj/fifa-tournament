@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
+import { isClerkUserAdmin } from "@/lib/is-clerk-admin"
 import { TournamentNavbar } from "@/components/tournament/navbar"
 import { getMatches, getTeamMap, createServiceSupabaseClient } from "@/lib/tournament-store"
 import { Button } from "@/components/ui/button"
@@ -12,12 +13,7 @@ export default async function AdminPage() {
   const { userId } = await auth()
   if (!userId) redirect("/")
 
-  const adminIds = (process.env.ADMIN_USER_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean)
-
-  if (!adminIds.includes(userId)) {
+  if (!(await isClerkUserAdmin(userId))) {
     redirect("/")
   }
 

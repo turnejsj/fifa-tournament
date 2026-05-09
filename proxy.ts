@@ -1,11 +1,25 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 import type { NextFetchEvent, NextRequest } from 'next/server'
+import { isClerkUserAdmin } from '@/lib/is-clerk-admin'
 
-const isProtectedRoute = createRouteMatcher(['/submit-score(.*)', '/admin(.*)'])
+const isSubmitScoreRoute = createRouteMatcher(['/submit-score(.*)'])
+const isAdminRoute = createRouteMatcher(['/admin(.*)'])
 
 const clerk = clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
+  if (isSubmitScoreRoute(req) || isAdminRoute(req)) {
     await auth.protect()
+  }
+
+  if (isAdminRoute(req)) {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.redirect(new URL('/', req.url))
+    }
+    const allowed = await isClerkUserAdmin(userId)
+    if (!allowed) {
+      return NextResponse.redirect(new URL('/', req.url))
+    }
   }
 })
 
