@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
-import { TournamentNavbar } from "@/components/tournament/navbar"
-import { isClerkUserAdmin } from "@/lib/is-clerk-admin"
+import { TournamentNavbarShell } from "@/components/tournament/tournament-navbar-shell"
 import { getTeams } from "@/lib/tournament-store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,11 +17,10 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
   const params = await searchParams
 
   const teams = await getTeams()
-  const isAdmin = await isClerkUserAdmin(userId)
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      <TournamentNavbar isAdmin={isAdmin} />
+      <TournamentNavbarShell />
       <main className="mx-auto w-full max-w-3xl px-4 py-8">
         <Card className="border-border bg-card/80">
           <CardHeader>

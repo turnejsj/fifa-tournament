@@ -2,7 +2,7 @@ import Image from "next/image"
 import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
 import { isClerkUserAdmin } from "@/lib/is-clerk-admin"
-import { TournamentNavbar } from "@/components/tournament/navbar"
+import { TournamentNavbarShell } from "@/components/tournament/tournament-navbar-shell"
 import { getMatches, getTeamMap, createServiceSupabaseClient } from "@/lib/tournament-store"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,7 +36,7 @@ export default async function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      <TournamentNavbar isAdmin />
+      <TournamentNavbarShell />
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8">
         <h1 className="text-2xl font-bold text-white">Admin — pending matches</h1>
         <p className="text-sm text-zinc-400">
