@@ -13,7 +13,7 @@ export type MatchRecord = {
   away_team_id: string
   home_score: number
   away_score: number
-  screenshot_path: string
+  screenshot_path: string | null
   submitted_by: string
   status: MatchStatus
   admin_note: string | null

@@ -26,8 +26,8 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
           <CardHeader>
             <CardTitle className="text-white">Submit Match Score</CardTitle>
             <p className="text-sm text-zinc-400">
-              Enter the result and attach a screenshot. The league table updates as soon as
-              you submit.
+              Choose home and away teams, enter the score, and submit. The league table
+              updates right away.
             </p>
             {params.submitted === "1" && (
               <p className="rounded-md border border-[#00F081]/30 bg-[#00F081]/10 px-3 py-2 text-sm text-[#00F081]">
@@ -36,12 +36,7 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
             )}
           </CardHeader>
           <CardContent>
-            <form
-              action="/api/matches/submit"
-              method="post"
-              encType="multipart/form-data"
-              className="space-y-4"
-            >
+            <form action="/api/matches/submit" method="post" className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="homeTeam">Home Team</Label>
@@ -86,11 +81,6 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
                   <Label htmlFor="awayScore">Away Score</Label>
                   <Input id="awayScore" type="number" min={0} name="awayScore" required />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="proof">Screenshot</Label>
-                <Input id="proof" type="file" name="proof" accept="image/*" required />
               </div>
 
               <Button type="submit" className="w-full bg-[#00F081] text-black hover:bg-[#00d874]">

@@ -12,7 +12,7 @@ create table if not exists public.matches (
   away_team_id uuid not null references public.teams(id),
   home_score integer not null check (home_score >= 0),
   away_score integer not null check (away_score >= 0),
-  screenshot_path text not null,
+  screenshot_path text,
   submitted_by text not null,
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   admin_note text,

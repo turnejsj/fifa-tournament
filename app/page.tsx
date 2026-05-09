@@ -39,8 +39,8 @@ export default async function LandingPage() {
           </p>
           <h1 className="mt-2 text-3xl font-bold text-white">FIFA Tournament</h1>
           <p className="mt-2 max-w-2xl text-zinc-400">
-            Track standings in real time. Logged-in players submit match results and a
-            screenshot; scores count toward the table immediately.
+            Track standings in real time. Logged-in players submit match results and scores
+            count toward the table immediately.
           </p>
         </section>
 
