@@ -10,12 +10,29 @@ export default async function LandingPage() {
     .map((id) => id.trim())
     .filter(Boolean)
   const isAdmin = Boolean(userId && adminIds.includes(userId))
-  const table = await getLeagueTable()
+
+  let table: Awaited<ReturnType<typeof getLeagueTable>> = []
+  let tableError: string | null = null
+  try {
+    table = await getLeagueTable()
+  } catch (e) {
+    tableError =
+      e instanceof Error ? e.message : "Could not load league table from Supabase."
+  }
 
   return (
     <div className="min-h-screen bg-[#050505]">
       <TournamentNavbar isAdmin={isAdmin} />
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8">
+        {tableError && (
+          <div
+            className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground"
+            role="alert"
+          >
+            <p className="font-medium">League table unavailable</p>
+            <p className="mt-1 text-muted-foreground">{tableError}</p>
+          </div>
+        )}
         <section className="rounded-xl border border-border bg-gradient-to-br from-[#0b0b0b] to-[#111112] p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-[#00F081]">
             Official Competition Center

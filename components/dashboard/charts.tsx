@@ -80,7 +80,6 @@ export function BalanceChart({ data = [] }: BalanceChartProps) {
           <Bar dataKey="value" radius={[4, 4, 0, 0]}>
             {chartData.map((entry, index) => (
               <Cell
-                // eslint-disable-next-line react/no-array-index-key
                 key={`cell-${index}`}
                 fill={entry.value >= 0 ? "#00F081" : "#FF4D4D"}
               />

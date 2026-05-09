@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
 import { TournamentNavbar } from "@/components/tournament/navbar"
@@ -63,9 +64,12 @@ export default async function AdminPage() {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <img
+              <Image
                 src={match.screenshotUrl}
                 alt="Uploaded match proof"
+                width={1200}
+                height={800}
+                unoptimized
                 className="max-h-[420px] w-full rounded-md border border-border object-contain"
               />
               <div className="flex gap-2">
