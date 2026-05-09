@@ -25,6 +25,8 @@ export type MatchRecord = {
 export type LeagueRow = {
   teamId: string
   team: string
+  /** Managers from profiles where tournament_team matches team name (comma-separated). */
+  manager: string
   played: number
   won: number
   drawn: number
@@ -82,9 +84,42 @@ export async function getTeamMap() {
   }, {})
 }
 
+/** Maps `teams.name` → display string for Manager column (profiles.full_name, comma-separated). */
+export async function getManagerNamesByTournamentTeam(): Promise<Record<string, string>> {
+  const supabase = createServiceSupabaseClient()
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("tournament_team, full_name")
+    .not("tournament_team", "is", null)
+
+  if (error) throw error
+
+  const buckets: Record<string, string[]> = {}
+  for (const row of data ?? []) {
+    const teamKey = String(row.tournament_team ?? "").trim()
+    if (!teamKey) continue
+    const fn = String(row.full_name ?? "").trim()
+    if (!fn) continue
+    if (!buckets[teamKey]) buckets[teamKey] = []
+    if (!buckets[teamKey].includes(fn)) {
+      buckets[teamKey].push(fn)
+    }
+  }
+
+  const out: Record<string, string> = {}
+  for (const [team, names] of Object.entries(buckets)) {
+    out[team] = names.join(", ")
+  }
+  return out
+}
+
 /** Standings use only approved matches (pending/rejected are excluded). */
 export async function getLeagueTable() {
-  const [teams, approvedMatches] = await Promise.all([getTeams(), getMatches("approved")])
+  const [teams, approvedMatches, managersByTeam] = await Promise.all([
+    getTeams(),
+    getMatches("approved"),
+    getManagerNamesByTournamentTeam(),
+  ])
 
   const rows: Record<string, LeagueRow> = {}
 
@@ -92,6 +127,7 @@ export async function getLeagueTable() {
     rows[team.id] = {
       teamId: team.id,
       team: team.name,
+      manager: managersByTeam[team.name]?.trim() || "—",
       played: 0,
       won: 0,
       drawn: 0,

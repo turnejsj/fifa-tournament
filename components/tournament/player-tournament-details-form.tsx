@@ -14,6 +14,7 @@ type TeamOption = { id: string; name: string }
 type ProfileRow = {
   id: string
   role?: string
+  full_name: string | null
   tournament_team: string | null
   platform: string | null
   gamer_tag: string | null
@@ -32,6 +33,7 @@ export function PlayerTournamentDetailsForm() {
   const [teams, setTeams] = useState<TeamOption[]>([])
   const [fetchError, setFetchError] = useState<string | null>(null)
 
+  const [fullName, setFullName] = useState("")
   const [platform, setPlatform] = useState("PlayStation")
   const [gamerTag, setGamerTag] = useState("")
   const [tournamentTeam, setTournamentTeam] = useState("")
@@ -41,6 +43,7 @@ export function PlayerTournamentDetailsForm() {
   const load = useCallback(async () => {
     setFetchError(null)
     setDataReady(false)
+    const clerkFirst = user?.firstName?.trim() ?? ""
     try {
       const res = await fetch("/api/profile/me", { method: "GET" })
       const json = (await res.json()) as {
@@ -67,6 +70,7 @@ export function PlayerTournamentDetailsForm() {
         setPlatform("PlayStation")
       }
       setGamerTag(p?.gamer_tag?.trim() ?? "")
+      setFullName(p?.full_name?.trim() || clerkFirst)
 
       const teamFromProfile = p?.tournament_team?.trim()
       if (teamFromProfile) {
@@ -84,7 +88,7 @@ export function PlayerTournamentDetailsForm() {
       setTeams([])
       setDataReady(true)
     }
-  }, [])
+  }, [user?.id, user?.firstName])
 
   useEffect(() => {
     if (!isLoaded) return
@@ -106,6 +110,7 @@ export function PlayerTournamentDetailsForm() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          full_name: fullName.trim(),
           platform,
           gamer_tag: gamerTag.trim(),
           tournament_team: tournamentTeam.trim(),
@@ -171,12 +176,26 @@ export function PlayerTournamentDetailsForm() {
       <CardHeader>
         <CardTitle className="text-white">Complete your tournament profile</CardTitle>
         <CardDescription className="text-zinc-400">
-          Add your platform, gamer tag, and team so others can find you in the player directory.
-          Your display name uses your first name from this Clerk account when you save.
+          Add your full name, platform, gamer tag, and team so others can find you in the player
+          directory. Your name also appears as Manager on the league table for your tournament team.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Full name</Label>
+            <Input
+              id="fullName"
+              name="fullName"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Your name as it should appear"
+              className="border-input bg-[#090909]"
+              required
+              autoComplete="name"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="platform">Platform</Label>
             <select

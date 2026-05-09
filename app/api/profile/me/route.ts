@@ -1,4 +1,5 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
+import { auth } from "@clerk/nextjs/server"
+import { revalidatePath } from "next/cache"
 import { NextResponse } from "next/server"
 import { createServiceSupabaseClient, getTeams } from "@/lib/tournament-store"
 
@@ -49,11 +50,16 @@ export async function PUT(request: Request) {
   }
 
   const raw = body as Record<string, unknown>
+  const fullName =
+    typeof raw.full_name === "string" ? raw.full_name.trim() : ""
   const platform = typeof raw.platform === "string" ? raw.platform.trim() : ""
   const gamerTag = typeof raw.gamer_tag === "string" ? raw.gamer_tag.trim() : ""
   const tournamentTeam =
     typeof raw.tournament_team === "string" ? raw.tournament_team.trim() : ""
 
+  if (!fullName) {
+    return NextResponse.json({ error: "Full name is required" }, { status: 400 })
+  }
   if (!ALLOWED_PLATFORMS.has(platform)) {
     return NextResponse.json({ error: "Invalid platform" }, { status: 400 })
   }
@@ -65,8 +71,6 @@ export async function PUT(request: Request) {
   }
 
   const id = String(userId)
-  const clerkUser = await currentUser()
-  const fullNameFromClerk = clerkUser?.firstName?.trim() || null
 
   const supabase = createServiceSupabaseClient()
 
@@ -84,7 +88,7 @@ export async function PUT(request: Request) {
     const { error } = await supabase
       .from("profiles")
       .update({
-        full_name: fullNameFromClerk,
+        full_name: fullName,
         platform,
         gamer_tag: gamerTag,
         tournament_team: tournamentTeam,
@@ -99,7 +103,7 @@ export async function PUT(request: Request) {
     const { error } = await supabase.from("profiles").insert({
       id,
       role: "user",
-      full_name: fullNameFromClerk,
+      full_name: fullName,
       platform,
       gamer_tag: gamerTag,
       tournament_team: tournamentTeam,
@@ -110,5 +114,7 @@ export async function PUT(request: Request) {
     }
   }
 
+  revalidatePath("/")
+  revalidatePath("/players")
   return NextResponse.json({ ok: true })
 }

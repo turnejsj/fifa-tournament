@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import type { PlayerProfileRow } from "@/lib/player-profiles"
 import { CopyGamerTagButton } from "@/components/tournament/copy-gamer-tag-button"
+import { PlayerNameAdminEditor } from "@/components/tournament/player-name-admin-editor"
 import { PlatformBadge } from "@/components/tournament/platform-badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -27,6 +28,7 @@ function playerDisplayName(fullName: string | null | undefined): string {
 export function PlayerDirectoryClient() {
   const [loading, setLoading] = useState(true)
   const [players, setPlayers] = useState<PlayerProfileRow[]>([])
+  const [isAdmin, setIsAdmin] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export function PlayerDirectoryClient() {
       setErrorMessage(null)
       try {
         const res = await fetch("/api/players/directory")
-        let json: { players?: PlayerProfileRow[]; error?: string }
+        let json: { players?: PlayerProfileRow[]; isAdmin?: boolean; error?: string }
         try {
           json = (await res.json()) as { players?: PlayerProfileRow[]; error?: string }
         } catch (parseErr) {
@@ -45,6 +47,7 @@ export function PlayerDirectoryClient() {
           if (!cancelled) {
             setErrorMessage("Invalid response from server")
             setPlayers([])
+            setIsAdmin(false)
           }
           return
         }
@@ -55,18 +58,21 @@ export function PlayerDirectoryClient() {
           if (!cancelled) {
             setErrorMessage(json.error ?? res.statusText)
             setPlayers([])
+            setIsAdmin(false)
           }
           return
         }
 
         if (!cancelled) {
           setPlayers(Array.isArray(json.players) ? json.players : [])
+          setIsAdmin(Boolean(json.isAdmin))
         }
       } catch (error) {
         console.error(error)
         if (!cancelled) {
           setErrorMessage(error instanceof Error ? error.message : "Could not load players.")
           setPlayers([])
+          setIsAdmin(false)
         }
       } finally {
         if (!cancelled) {
@@ -126,7 +132,23 @@ export function PlayerDirectoryClient() {
                     <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                       Player name
                     </div>
-                    <div className="mt-1 font-semibold text-white">{playerDisplayName(p.full_name)}</div>
+                    <div className="mt-1 font-semibold text-white">
+                      {isAdmin ? (
+                        <PlayerNameAdminEditor
+                          profileId={p.id}
+                          initialName={p.full_name}
+                          onSaved={(name) =>
+                            setPlayers((prev) =>
+                              prev.map((row) =>
+                                row.id === p.id ? { ...row, full_name: name } : row
+                              )
+                            )
+                          }
+                        />
+                      ) : (
+                        playerDisplayName(p.full_name)
+                      )}
+                    </div>
                     <div className="mt-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
                       Tournament team
                     </div>
@@ -164,8 +186,22 @@ export function PlayerDirectoryClient() {
                   <TableBody>
                     {players.map((p) => (
                       <TableRow key={p.id} className="border-border">
-                        <TableCell className="font-medium text-white">
-                          {playerDisplayName(p.full_name)}
+                        <TableCell className="min-w-[200px] font-medium text-white">
+                          {isAdmin ? (
+                            <PlayerNameAdminEditor
+                              profileId={p.id}
+                              initialName={p.full_name}
+                              onSaved={(name) =>
+                                setPlayers((prev) =>
+                                  prev.map((row) =>
+                                    row.id === p.id ? { ...row, full_name: name } : row
+                                  )
+                                )
+                              }
+                            />
+                          ) : (
+                            playerDisplayName(p.full_name)
+                          )}
                         </TableCell>
                         <TableCell className="text-zinc-200">{dash(p.tournament_team)}</TableCell>
                         <TableCell>

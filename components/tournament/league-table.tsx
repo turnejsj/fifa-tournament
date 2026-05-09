@@ -25,6 +25,7 @@ export function LeagueTable({ rows }: LeagueTableProps) {
           <TableRow className="border-border">
             <TableHead className="w-10">#</TableHead>
             <TableHead>Team</TableHead>
+            <TableHead className="min-w-[140px] text-zinc-400">Manager</TableHead>
             <TableHead className="text-right">P</TableHead>
             <TableHead className="text-right">W</TableHead>
             <TableHead className="text-right">D</TableHead>
@@ -38,6 +39,9 @@ export function LeagueTable({ rows }: LeagueTableProps) {
             <TableRow key={row.teamId} className="border-border">
               <TableCell>{index + 1}</TableCell>
               <TableCell className="font-medium">{row.team}</TableCell>
+              <TableCell className="max-w-[min(280px,40vw)] text-sm break-words text-zinc-300">
+                {row.manager}
+              </TableCell>
               <TableCell className="text-right">{row.played}</TableCell>
               <TableCell className="text-right">{row.won}</TableCell>
               <TableCell className="text-right">{row.drawn}</TableCell>
