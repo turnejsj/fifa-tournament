@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server"
+import { auth, currentUser } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { createServiceSupabaseClient, getTeams } from "@/lib/tournament-store"
 
@@ -13,7 +13,7 @@ export async function GET() {
     const [profileRes, teams] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, role, tournament_team, platform, gamer_tag")
+        .select("id, role, full_name, tournament_team, platform, gamer_tag")
         .eq("id", String(userId))
         .maybeSingle(),
       getTeams(),
@@ -65,6 +65,9 @@ export async function PUT(request: Request) {
   }
 
   const id = String(userId)
+  const clerkUser = await currentUser()
+  const fullNameFromClerk = clerkUser?.firstName?.trim() || null
+
   const supabase = createServiceSupabaseClient()
 
   const { data: existing, error: readErr } = await supabase
@@ -81,6 +84,7 @@ export async function PUT(request: Request) {
     const { error } = await supabase
       .from("profiles")
       .update({
+        full_name: fullNameFromClerk,
         platform,
         gamer_tag: gamerTag,
         tournament_team: tournamentTeam,
@@ -95,6 +99,7 @@ export async function PUT(request: Request) {
     const { error } = await supabase.from("profiles").insert({
       id,
       role: "user",
+      full_name: fullNameFromClerk,
       platform,
       gamer_tag: gamerTag,
       tournament_team: tournamentTeam,

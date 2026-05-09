@@ -20,6 +20,10 @@ function dash(s: string | null | undefined) {
   return t ? t : "—"
 }
 
+function playerDisplayName(fullName: string | null | undefined): string {
+  return fullName?.trim() ? fullName.trim() : "Anonymous Player"
+}
+
 export function PlayerDirectoryClient() {
   const [loading, setLoading] = useState(true)
   const [players, setPlayers] = useState<PlayerProfileRow[]>([])
@@ -120,13 +124,13 @@ export function PlayerDirectoryClient() {
                     className="rounded-lg border border-border bg-[#0a0a0a] p-4 shadow-sm"
                   >
                     <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                      Email
+                      Player name
                     </div>
-                    <div className="mt-1 text-sm text-zinc-200">{dash(p.email)}</div>
+                    <div className="mt-1 font-semibold text-white">{playerDisplayName(p.full_name)}</div>
                     <div className="mt-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
                       Tournament team
                     </div>
-                    <div className="mt-1 font-semibold text-white">{dash(p.tournament_team)}</div>
+                    <div className="mt-1 text-white">{dash(p.tournament_team)}</div>
                     <div className="mt-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
                       Platform
                     </div>
@@ -150,7 +154,7 @@ export function PlayerDirectoryClient() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="text-zinc-400">Email</TableHead>
+                      <TableHead className="text-zinc-400">Player name</TableHead>
                       <TableHead className="text-zinc-400">Tournament team</TableHead>
                       <TableHead className="text-zinc-400">Platform</TableHead>
                       <TableHead className="min-w-[180px] text-zinc-400">Gamer tag</TableHead>
@@ -160,12 +164,10 @@ export function PlayerDirectoryClient() {
                   <TableBody>
                     {players.map((p) => (
                       <TableRow key={p.id} className="border-border">
-                        <TableCell className="max-w-[200px] truncate text-sm text-zinc-300">
-                          {dash(p.email)}
-                        </TableCell>
                         <TableCell className="font-medium text-white">
-                          {dash(p.tournament_team)}
+                          {playerDisplayName(p.full_name)}
                         </TableCell>
+                        <TableCell className="text-zinc-200">{dash(p.tournament_team)}</TableCell>
                         <TableCell>
                           <PlatformBadge platform={p.platform} />
                         </TableCell>

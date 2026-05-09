@@ -172,6 +172,7 @@ export function PlayerTournamentDetailsForm() {
         <CardTitle className="text-white">Complete your tournament profile</CardTitle>
         <CardDescription className="text-zinc-400">
           Add your platform, gamer tag, and team so others can find you in the player directory.
+          Your display name uses your first name from this Clerk account when you save.
         </CardDescription>
       </CardHeader>
       <CardContent>

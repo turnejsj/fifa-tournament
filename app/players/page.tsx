@@ -12,7 +12,7 @@ export default function PlayersPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-[#00F081]">Roster</p>
           <h1 className="mt-1 text-3xl font-bold text-white">Player Directory</h1>
           <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-            Find teammates by email, tournament side, platform, and gamer tag. Use Copy to add
+            Find teammates by name, tournament side, platform, and gamer tag. Use Copy to add
             friends fast.
           </p>
         </div>
