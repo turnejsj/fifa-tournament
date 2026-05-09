@@ -6,6 +6,7 @@
 create table if not exists public.profiles (
   id text primary key,
   role text not null default 'user' check (role in ('user', 'admin')),
+  email text,
   tournament_team text,
   platform text,
   gamer_tag text,
