@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import html2canvas from "html2canvas"
+import html2canvas from 'html2canvas'
 import { toast } from "sonner"
 import { LeagueRow } from "@/lib/tournament-store"
 import { Button } from "@/components/ui/button"
@@ -75,9 +75,9 @@ export function LeagueTable({ rows }: LeagueTableProps) {
     "max-md:h-8 max-md:px-1 max-md:py-1 md:h-10 md:px-2 max-md:text-[10px] md:text-sm"
 
   const shareTableImage = useCallback(async () => {
-    const el = document.getElementById("league-table")
+    const el = document.getElementById("league-table-capture")
     if (!el || !(el instanceof HTMLElement)) {
-      console.log("[league-table capture] missing element #league-table", el)
+      console.log("[league-table capture] missing element #league-table-capture", el)
       toast.error("Could not capture the table.")
       return
     }
@@ -93,7 +93,7 @@ export function LeagueTable({ rows }: LeagueTableProps) {
           node instanceof HTMLElement && node.hasAttribute("data-html2canvas-ignore"),
       })
 
-      const blob = await new Promise<Blob | null>((resolve) => {
+      const blob: Blob | null = await new Promise((resolve) => {
         canvas.toBlob((b) => resolve(b), "image/png")
       })
       if (!blob) {
@@ -103,18 +103,23 @@ export function LeagueTable({ rows }: LeagueTableProps) {
 
       const file = new File([blob], "Tournament_Standings.png", { type: "image/png" })
 
-      if (typeof navigator !== "undefined" && navigator.share && navigator.canShare?.({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: "Tournament Standings",
-            text: "FIFA Tournament standings",
-          })
-          toast.success("Share sheet opened — pick WhatsApp to send the image.")
-          return
-        } catch (shareErr) {
-          if (shareErr instanceof Error && shareErr.name === "AbortError") {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        const canShareFiles =
+          typeof navigator.canShare !== "function" || navigator.canShare({ files: [file] })
+        if (canShareFiles) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: "Tournament Standings",
+              text: "FIFA Tournament standings",
+            })
+            toast.success("Share sheet opened — pick WhatsApp or another app.")
             return
+          } catch (shareErr) {
+            if (shareErr instanceof Error && shareErr.name === "AbortError") {
+              return
+            }
+            console.log("[league-table capture] navigator.share failed, falling back to download:", shareErr)
           }
         }
       }
@@ -151,31 +156,31 @@ export function LeagueTable({ rows }: LeagueTableProps) {
 
   return (
     <div
-      id="league-table"
+      id="league-table-capture"
       className="w-full min-w-0 rounded-xl border border-border bg-card/70 p-3 sm:p-4"
     >
-      <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
-        <h2 className="text-base font-semibold text-white sm:text-lg">Live League Table</h2>
-        <p className="shrink-0 text-xs text-zinc-400">Approved matches only</p>
-      </div>
+        <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+          <h2 className="text-base font-semibold text-white sm:text-lg">Live League Table</h2>
+          <p className="shrink-0 text-xs text-zinc-400">Approved matches only</p>
+        </div>
 
-      <div className="mb-3 flex flex-wrap gap-2" data-html2canvas-ignore>
-        <Button
-          type="button"
-          size="sm"
-          className="bg-[#25D366] text-white hover:bg-[#20bd5a]"
-          disabled={captureBusy}
-          onClick={() => void shareTableImage()}
-        >
-          {captureBusy ? "Capturing…" : "Share to WhatsApp"}
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={openWhatsAppText}>
-          Share Text
-        </Button>
-      </div>
+        <div className="mb-3 flex flex-wrap gap-2" data-html2canvas-ignore>
+          <Button
+            type="button"
+            size="sm"
+            className="bg-[#25D366] text-white hover:bg-[#20bd5a]"
+            disabled={captureBusy}
+            onClick={() => void shareTableImage()}
+          >
+            {captureBusy ? "Capturing…" : "Share to WhatsApp"}
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={openWhatsAppText}>
+            Share Text
+          </Button>
+        </div>
 
-      <div className="w-full min-w-0 md:overflow-x-auto md:overscroll-x-contain md:[-webkit-overflow-scrolling:touch]">
-        <Table className="w-full max-md:table-fixed max-md:text-[10px] md:min-w-[640px] md:text-sm">
+        <div className="w-full min-w-0 md:overflow-x-auto md:overscroll-x-contain md:[-webkit-overflow-scrolling:touch]">
+          <Table className="w-full max-md:table-fixed max-md:text-[10px] md:min-w-[640px] md:text-sm">
             <TableHeader>
               <TableRow className="border-border">
                 <TableHead className={`${headPad} w-10 max-md:w-7 max-md:max-w-[1.75rem] shrink-0 text-left`}>
@@ -246,7 +251,7 @@ export function LeagueTable({ rows }: LeagueTableProps) {
               ))}
             </TableBody>
           </Table>
-      </div>
+        </div>
     </div>
   )
 }
