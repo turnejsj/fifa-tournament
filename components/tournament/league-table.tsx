@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useState } from "react"
+import html2canvas from "html2canvas"
 import { toast } from "sonner"
 import { LeagueRow } from "@/lib/tournament-store"
 import { Button } from "@/components/ui/button"
@@ -66,7 +67,6 @@ function buildStandingsWhatsAppMessage(rows: LeagueRow[], pageUrl: string): stri
 const CAPTURE_BG = "#0b0b0b"
 
 export function LeagueTable({ rows }: LeagueTableProps) {
-  const captureRef = useRef<HTMLDivElement>(null)
   const [captureBusy, setCaptureBusy] = useState(false)
 
   const cellPad =
@@ -75,21 +75,20 @@ export function LeagueTable({ rows }: LeagueTableProps) {
     "max-md:h-8 max-md:px-1 max-md:py-1 md:h-10 md:px-2 max-md:text-[10px] md:text-sm"
 
   const shareTableImage = useCallback(async () => {
-    const el = captureRef.current
-    if (!el) {
+    const el = document.getElementById("league-table")
+    if (!el || !(el instanceof HTMLElement)) {
+      console.log("[league-table capture] missing element #league-table", el)
       toast.error("Could not capture the table.")
       return
     }
     setCaptureBusy(true)
     try {
-      const html2canvas = (await import("html2canvas")).default
-      const scale = Math.min(3, Math.max(2, typeof window !== "undefined" ? window.devicePixelRatio || 2 : 2))
       const canvas = await html2canvas(el, {
-        scale,
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: CAPTURE_BG,
-        logging: false,
+        logging: true,
         ignoreElements: (node) =>
           node instanceof HTMLElement && node.hasAttribute("data-html2canvas-ignore"),
       })
@@ -130,7 +129,10 @@ export function LeagueTable({ rows }: LeagueTableProps) {
       URL.revokeObjectURL(url)
       toast.success("Saved Tournament_Standings.png — open it from Downloads or share to WhatsApp.")
     } catch (e) {
-      console.error(e)
+      console.log("[league-table capture] error:", e)
+      if (e instanceof Error) {
+        console.log("[league-table capture] error.message:", e.message, "stack:", e.stack)
+      }
       toast.error("Could not capture the league table.")
     } finally {
       setCaptureBusy(false)
@@ -149,7 +151,7 @@ export function LeagueTable({ rows }: LeagueTableProps) {
 
   return (
     <div
-      ref={captureRef}
+      id="league-table"
       className="w-full min-w-0 rounded-xl border border-border bg-card/70 p-3 sm:p-4"
     >
       <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
