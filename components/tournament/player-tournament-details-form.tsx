@@ -20,8 +20,57 @@ type ProfileRow = {
   gamer_tag: string | null
 }
 
+const SELECT_CLASS =
+  "h-10 w-full rounded-md border border-input bg-[#090909] px-3 text-sm text-zinc-100 shadow-sm focus:border-[#00F081] focus:outline-none focus:ring-1 focus:ring-[#00F081]/40"
+
 function hasGamertag(profile: ProfileRow | null): boolean {
   return Boolean(profile?.gamer_tag?.trim())
+}
+
+function hasTournamentTeam(profile: ProfileRow | null): boolean {
+  return Boolean(profile?.tournament_team?.trim())
+}
+
+function TournamentTeamSelect({
+  id,
+  teams,
+  value,
+  onChange,
+  required,
+}: {
+  id: string
+  teams: TeamOption[]
+  value: string
+  onChange: (value: string) => void
+  required?: boolean
+}) {
+  if (teams.length === 0) {
+    return (
+      <p className="text-sm text-zinc-500">
+        No teams available. Ask an admin to add teams in the dashboard.
+      </p>
+    )
+  }
+
+  return (
+    <select
+      id={id}
+      name={id}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={SELECT_CLASS}
+      required={required}
+    >
+      <option value="" disabled>
+        Select your Team...
+      </option>
+      {teams.map((t) => (
+        <option key={t.id} value={t.name}>
+          {t.name}
+        </option>
+      ))}
+    </select>
+  )
 }
 
 export function PlayerTournamentDetailsForm() {
@@ -71,15 +120,7 @@ export function PlayerTournamentDetailsForm() {
       }
       setGamerTag(p?.gamer_tag?.trim() ?? "")
       setFullName(p?.full_name?.trim() || clerkFirst)
-
-      const teamFromProfile = p?.tournament_team?.trim()
-      if (teamFromProfile) {
-        setTournamentTeam(teamFromProfile)
-      } else if (t[0]?.name) {
-        setTournamentTeam(t[0].name)
-      } else {
-        setTournamentTeam("")
-      }
+      setTournamentTeam(p?.tournament_team?.trim() ?? "")
 
       setDataReady(true)
     } catch {
@@ -101,9 +142,15 @@ export function PlayerTournamentDetailsForm() {
     void load()
   }, [isLoaded, user?.id, load])
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSaveFullProfile(e: React.FormEvent) {
     e.preventDefault()
     setSaveError(null)
+
+    if (!tournamentTeam.trim()) {
+      setSaveError("Please select a tournament team")
+      return
+    }
+
     setSaving(true)
     try {
       const res = await fetch("/api/profile/me", {
@@ -115,6 +162,36 @@ export function PlayerTournamentDetailsForm() {
           gamer_tag: gamerTag.trim(),
           tournament_team: tournamentTeam.trim(),
         }),
+      })
+      const json = (await res.json()) as { error?: string }
+      if (!res.ok) {
+        setSaveError(json.error ?? "Save failed")
+        return
+      }
+      await load()
+      router.refresh()
+    } catch {
+      setSaveError("Network error")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleSaveTeamOnly(e: React.FormEvent) {
+    e.preventDefault()
+    setSaveError(null)
+
+    if (!tournamentTeam.trim()) {
+      setSaveError("Please select a tournament team")
+      return
+    }
+
+    setSaving(true)
+    try {
+      const res = await fetch("/api/profile/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tournament_team: tournamentTeam.trim() }),
       })
       const json = (await res.json()) as { error?: string }
       if (!res.ok) {
@@ -164,107 +241,138 @@ export function PlayerTournamentDetailsForm() {
     )
   }
 
-  if (hasGamertag(profile)) {
+  const needsGamertag = !hasGamertag(profile)
+  const needsTeam = !hasTournamentTeam(profile)
+
+  if (!needsGamertag && !needsTeam) {
     return null
   }
 
-  const selectClass =
-    "h-10 w-full rounded-md border border-input bg-[#090909] px-3 text-sm text-zinc-100 shadow-sm focus:border-[#00F081] focus:outline-none focus:ring-1 focus:ring-[#00F081]/40"
+  if (needsGamertag) {
+    return (
+      <Card className="mb-8 border-border bg-gradient-to-br from-[#0b0b0b] to-[#111112]">
+        <CardHeader>
+          <CardTitle className="text-white">Complete your tournament profile</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Add your full name, platform, gamer tag, and team so others can find you in the player
+            directory. Your name also appears as Manager on the league table for your tournament
+            team.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={(e) => void handleSaveFullProfile(e)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full name</Label>
+              <Input
+                id="fullName"
+                name="fullName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Your name as it should appear"
+                className="border-input bg-[#090909]"
+                required
+                autoComplete="name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="platform">Platform</Label>
+              <select
+                id="platform"
+                name="platform"
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
+                className={SELECT_CLASS}
+                required
+              >
+                <option value="PlayStation">PlayStation</option>
+                <option value="Xbox">Xbox</option>
+                <option value="EA App">EA App</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gamerTag">Gamer tag</Label>
+              <Input
+                id="gamerTag"
+                name="gamerTag"
+                value={gamerTag}
+                onChange={(e) => setGamerTag(e.target.value)}
+                placeholder="PSN ID, Xbox Gamertag, or EA ID"
+                className="border-input bg-[#090909]"
+                required
+                autoComplete="username"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tournamentTeam">Tournament team</Label>
+              <TournamentTeamSelect
+                id="tournamentTeam"
+                teams={teams}
+                value={tournamentTeam}
+                onChange={setTournamentTeam}
+                required
+              />
+            </div>
+
+            {saveError ? (
+              <p className="text-sm text-destructive" role="alert">
+                {saveError}
+              </p>
+            ) : null}
+
+            <Button
+              type="submit"
+              disabled={saving || teams.length === 0}
+              className="w-full bg-[#00F081] text-black hover:bg-[#00d874] disabled:opacity-60"
+            >
+              {saving ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner className="size-4" />
+                  Saving…
+                </span>
+              ) : (
+                "Save"
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card className="mb-8 border-border bg-gradient-to-br from-[#0b0b0b] to-[#111112]">
       <CardHeader>
-        <CardTitle className="text-white">Complete your tournament profile</CardTitle>
+        <CardTitle className="text-white">Choose your tournament team</CardTitle>
         <CardDescription className="text-zinc-400">
-          Add your full name, platform, gamer tag, and team so others can find you in the player
-          directory. Your name also appears as Manager on the league table for your tournament team.
+          Pick one of the official teams so you appear on the league table and in the player
+          directory.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
+        <form onSubmit={(e) => void handleSaveTeamOnly(e)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full name</Label>
-            <Input
-              id="fullName"
-              name="fullName"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Your name as it should appear"
-              className="border-input bg-[#090909]"
+            <Label htmlFor="tournamentTeamOnly">Tournament team</Label>
+            <TournamentTeamSelect
+              id="tournamentTeamOnly"
+              teams={teams}
+              value={tournamentTeam}
+              onChange={setTournamentTeam}
               required
-              autoComplete="name"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="platform">Platform</Label>
-            <select
-              id="platform"
-              name="platform"
-              value={platform}
-              onChange={(e) => setPlatform(e.target.value)}
-              className={selectClass}
-              required
-            >
-              <option value="PlayStation">PlayStation</option>
-              <option value="Xbox">Xbox</option>
-              <option value="EA App">EA App</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="gamerTag">Gamer tag</Label>
-            <Input
-              id="gamerTag"
-              name="gamerTag"
-              value={gamerTag}
-              onChange={(e) => setGamerTag(e.target.value)}
-              placeholder="PSN ID, Xbox Gamertag, or EA ID"
-              className="border-input bg-[#090909]"
-              required
-              autoComplete="username"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="tournamentTeam">Tournament team</Label>
-            {teams.length > 0 ? (
-              <select
-                id="tournamentTeam"
-                name="tournamentTeam"
-                value={tournamentTeam}
-                onChange={(e) => setTournamentTeam(e.target.value)}
-                className={selectClass}
-                required
-              >
-                {teams.map((t) => (
-                  <option key={t.id} value={t.name}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <Input
-                id="tournamentTeam"
-                name="tournamentTeam"
-                value={tournamentTeam}
-                onChange={(e) => setTournamentTeam(e.target.value)}
-                placeholder="Your tournament side"
-                className="border-input bg-[#090909]"
-                required
-              />
-            )}
-          </div>
-
-          {saveError && (
+          {saveError ? (
             <p className="text-sm text-destructive" role="alert">
               {saveError}
             </p>
-          )}
+          ) : null}
 
           <Button
             type="submit"
-            disabled={saving}
+            disabled={saving || teams.length === 0}
             className="w-full bg-[#00F081] text-black hover:bg-[#00d874] disabled:opacity-60"
           >
             {saving ? (

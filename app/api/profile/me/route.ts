@@ -36,6 +36,76 @@ export async function GET() {
 
 const ALLOWED_PLATFORMS = new Set(["PlayStation", "Xbox", "EA App"])
 
+async function isValidTournamentTeamName(teamName: string): Promise<boolean> {
+  const teams = await getTeams()
+  return teams.some((t) => t.name === teamName)
+}
+
+export async function PATCH(request: Request) {
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+  }
+
+  const raw = body as Record<string, unknown>
+  const tournamentTeam =
+    typeof raw.tournament_team === "string" ? raw.tournament_team.trim() : ""
+
+  if (!tournamentTeam) {
+    return NextResponse.json({ error: "Please select a tournament team" }, { status: 400 })
+  }
+
+  if (!(await isValidTournamentTeamName(tournamentTeam))) {
+    return NextResponse.json({ error: "Invalid tournament team" }, { status: 400 })
+  }
+
+  const id = String(userId)
+  const supabase = createServiceSupabaseClient()
+  const now = new Date().toISOString()
+
+  const { data: existing, error: readErr } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", id)
+    .maybeSingle()
+
+  if (readErr) {
+    return NextResponse.json({ error: readErr.message }, { status: 500 })
+  }
+
+  if (existing) {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ tournament_team: tournamentTeam, updated_at: now })
+      .eq("id", id)
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+  } else {
+    const { error } = await supabase.from("profiles").insert({
+      id,
+      role: "user",
+      tournament_team: tournamentTeam,
+    })
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+  }
+
+  revalidatePath("/")
+  revalidatePath("/players")
+  return NextResponse.json({ ok: true, tournament_team: tournamentTeam })
+}
+
 export async function PUT(request: Request) {
   const { userId } = await auth()
   if (!userId) {
@@ -68,6 +138,10 @@ export async function PUT(request: Request) {
   }
   if (!tournamentTeam) {
     return NextResponse.json({ error: "Tournament team is required" }, { status: 400 })
+  }
+
+  if (!(await isValidTournamentTeamName(tournamentTeam))) {
+    return NextResponse.json({ error: "Invalid tournament team" }, { status: 400 })
   }
 
   const id = String(userId)
