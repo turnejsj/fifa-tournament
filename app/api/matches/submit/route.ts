@@ -1,16 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { revalidatePath } from "next/cache"
 import { NextResponse } from "next/server"
-import { createServiceSupabaseClient, type MatchRecord } from "@/lib/tournament-store"
-
-function playerScoresMatch(
-  p1Home: number,
-  p1Away: number,
-  p2Home: number,
-  p2Away: number
-): boolean {
-  return p1Home === p2Home && p1Away === p2Away
-}
+import { createServiceSupabaseClient } from "@/lib/tournament-store"
 
 export async function POST(request: Request) {
   const { userId } = await auth()
@@ -50,96 +41,12 @@ export async function POST(request: Request) {
     )
   }
 
-  const { data: fixtureRows, error: fixtureError } = await supabase
-    .from("matches")
-    .select("*")
-    .eq("home_team_id", homeTeam)
-    .eq("away_team_id", awayTeam)
-    .eq("status", "pending")
-    .order("created_at", { ascending: false })
-    .limit(1)
-
-  if (fixtureError) {
-    return NextResponse.json({ error: fixtureError.message }, { status: 500 })
-  }
-
-  const existing = (fixtureRows?.[0] ?? null) as MatchRecord | null
-
-  if (existing) {
-    const p1Id = existing.submitted_by_p1 ?? existing.submitted_by
-    if (p1Id === userId) {
-      return NextResponse.json(
-        { error: "You already submitted this fixture. Waiting for your opponent to confirm." },
-        { status: 400 }
-      )
-    }
-
-    if (existing.submitted_by_p2) {
-      return NextResponse.json(
-        { error: "This fixture already has two submissions awaiting resolution." },
-        { status: 400 }
-      )
-    }
-
-    const p1Home = existing.p1_home_score ?? existing.home_score
-    const p1Away = existing.p1_away_score ?? existing.away_score
-    if (p1Home == null || p1Away == null) {
-      return NextResponse.json({ error: "Invalid pending match data." }, { status: 500 })
-    }
-
-    const now = new Date().toISOString()
-    const agrees = playerScoresMatch(p1Home, p1Away, homeScore, awayScore)
-
-    if (agrees) {
-      const { error: approveError } = await supabase
-        .from("matches")
-        .update({
-          p2_home_score: homeScore,
-          p2_away_score: awayScore,
-          submitted_by_p2: userId,
-          home_score: p1Home,
-          away_score: p1Away,
-          status: "approved",
-          approved_at: now,
-          verified_at: now,
-        })
-        .eq("id", existing.id)
-
-      if (approveError) {
-        return NextResponse.json({ error: approveError.message }, { status: 500 })
-      }
-
-      revalidatePath("/")
-      revalidatePath("/admin")
-      return NextResponse.redirect(new URL("/submit-score?verified=1", request.url))
-    }
-
-    const { error: disputeError } = await supabase
-      .from("matches")
-      .update({
-        p2_home_score: homeScore,
-        p2_away_score: awayScore,
-        submitted_by_p2: userId,
-        status: "disputed",
-        verified_at: now,
-      })
-      .eq("id", existing.id)
-
-    if (disputeError) {
-      return NextResponse.json({ error: disputeError.message }, { status: 500 })
-    }
-
-    revalidatePath("/")
-    revalidatePath("/admin")
-    return NextResponse.redirect(new URL("/submit-score?disputed=1", request.url))
-  }
-
   const { data: blockedRows, error: blockedError } = await supabase
     .from("matches")
-    .select("id")
+    .select("id, status")
     .eq("home_team_id", homeTeam)
     .eq("away_team_id", awayTeam)
-    .in("status", ["disputed", "approved"])
+    .in("status", ["pending", "disputed", "approved"])
     .limit(1)
 
   if (blockedError) {
@@ -147,6 +54,13 @@ export async function POST(request: Request) {
   }
 
   if (blockedRows && blockedRows.length > 0) {
+    const status = blockedRows[0].status as string
+    if (status === "pending") {
+      return NextResponse.json(
+        { error: "This fixture already has a score awaiting opponent sign-off." },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { error: "This fixture already has a recorded or disputed result." },
       { status: 400 }

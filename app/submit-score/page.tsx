@@ -29,23 +29,12 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
           <CardHeader className="space-y-2 p-4 sm:p-6">
             <CardTitle className="text-lg text-white sm:text-xl">Submit Match Score</CardTitle>
             <p className="text-sm text-zinc-400">
-              Enter the result. Your opponent must submit the same score to confirm it. Matching
-              scores go on the league table instantly; different scores are flagged as disputed for
-              an admin.
+              Enter the result for your match. Your opponent will see it on their dashboard and can
+              approve or dispute it.
             </p>
             {params.submitted === "1" && (
               <p className="rounded-md border border-[#00F081]/30 bg-[#00F081]/10 px-3 py-2 text-sm text-[#00F081]">
-                Score saved. Waiting for your opponent to submit the same result.
-              </p>
-            )}
-            {params.verified === "1" && (
-              <p className="rounded-md border border-[#00F081]/30 bg-[#00F081]/10 px-3 py-2 text-sm text-[#00F081]">
-                Scores matched. The result is now on the league table.
-              </p>
-            )}
-            {params.disputed === "1" && (
-              <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-                Scores do not match. An admin will enter the correct result.
+                Score submitted. Waiting for your opponent to approve on their dashboard.
               </p>
             )}
           </CardHeader>
