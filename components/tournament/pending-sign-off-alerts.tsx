@@ -67,11 +67,11 @@ export function PendingSignOffAlerts({ matches }: Props) {
                 Submitted {new Date(match.createdAt).toLocaleString()}
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-2 p-4 pt-0 sm:flex-row sm:p-5 sm:pt-0">
+            <CardContent className="flex flex-col gap-3 p-4 pt-0 sm:flex-row sm:gap-2 sm:p-5 sm:pt-0">
               <Button
                 type="button"
                 disabled={loading}
-                className="w-full bg-[#00F081] text-black hover:bg-[#00d874] sm:flex-1"
+                className="h-auto min-h-12 w-full py-3 text-base font-semibold bg-[#00F081] text-black hover:bg-[#00d874] sm:min-h-9 sm:flex-1 sm:py-2 sm:text-sm sm:font-medium"
                 onClick={() => void handleAction(match.id, "approve")}
               >
                 {loading ? (
@@ -87,7 +87,7 @@ export function PendingSignOffAlerts({ matches }: Props) {
                 type="button"
                 variant="outline"
                 disabled={loading}
-                className="w-full border-amber-500/40 text-amber-200 hover:bg-amber-500/10 sm:flex-1"
+                className="h-auto min-h-12 w-full py-3 text-base font-semibold border-amber-500/40 text-amber-200 hover:bg-amber-500/10 sm:min-h-9 sm:flex-1 sm:py-2 sm:text-sm sm:font-medium"
                 onClick={() => void handleAction(match.id, "dispute")}
               >
                 Dispute
