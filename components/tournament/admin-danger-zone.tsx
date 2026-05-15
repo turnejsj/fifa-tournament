@@ -34,7 +34,7 @@ export function AdminDangerZone() {
         return
       }
       setOpen(false)
-      router.refresh()
+      await router.refresh()
     } catch {
       setError("Network error")
     } finally {
@@ -67,8 +67,8 @@ export function AdminDangerZone() {
             <AlertDialogHeader>
               <AlertDialogTitle>Reset league table?</AlertDialogTitle>
               <AlertDialogDescription className="text-zinc-400">
-                Are you sure you want to delete all match scores and reset the table? This cannot
-                be undone.
+                This will delete all match scores AND unassign all teams from players. Are you sure
+                you want to reset everything?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
