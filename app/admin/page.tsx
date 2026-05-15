@@ -2,20 +2,13 @@ import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
 import { AdminPanel } from "@/components/tournament/admin-panel"
 import {
-  AdminPendingMatches,
-  type PendingMatchView,
-} from "@/components/tournament/admin-pending-matches"
+  AdminDisputedMatches,
+  type DisputedMatchView,
+} from "@/components/tournament/admin-disputed-matches"
 import { TournamentNavbar } from "@/components/tournament/navbar"
 import { getProfilesForAdmin } from "@/lib/admin-profiles"
 import { isClerkUserAdmin } from "@/lib/is-clerk-admin"
-import {
-  createServiceSupabaseClient,
-  getMatches,
-  getTeamMap,
-  getTeams,
-} from "@/lib/tournament-store"
-
-const BUCKET = "match-screenshots"
+import { getMatches, getTeamMap, getTeams } from "@/lib/tournament-store"
 
 export default async function AdminPage() {
   const { userId } = await auth()
@@ -27,29 +20,16 @@ export default async function AdminPage() {
 
   const [teamMap, matches, profiles, teams] = await Promise.all([
     getTeamMap(),
-    getMatches("pending"),
+    getMatches("disputed"),
     getProfilesForAdmin(),
     getTeams(),
   ])
 
-  const supabase = createServiceSupabaseClient()
-
-  const matchesWithUrls: PendingMatchView[] = await Promise.all(
-    matches.map(async (match) => {
-      const path = match.screenshot_path?.trim() ?? ""
-      let screenshotUrl: string | null = null
-      if (path) {
-        const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
-        screenshotUrl = data.publicUrl
-      }
-      return {
-        ...match,
-        screenshotUrl,
-        homeTeamName: teamMap[match.home_team_id] ?? "Unknown",
-        awayTeamName: teamMap[match.away_team_id] ?? "Unknown",
-      }
-    })
-  )
+  const disputedMatches: DisputedMatchView[] = matches.map((match) => ({
+    ...match,
+    homeTeamName: teamMap[match.home_team_id] ?? "Unknown",
+    awayTeamName: teamMap[match.away_team_id] ?? "Unknown",
+  }))
 
   return (
     <div className="min-h-screen min-w-0 bg-[#050505]">
@@ -66,7 +46,7 @@ export default async function AdminPage() {
           currentUserId={userId}
           profiles={profiles}
           teams={teams}
-          pendingMatches={<AdminPendingMatches matches={matchesWithUrls} />}
+          disputedMatches={<AdminDisputedMatches matches={disputedMatches} />}
         />
       </main>
     </div>

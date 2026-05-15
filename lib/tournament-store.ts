@@ -6,20 +6,28 @@ export type Team = {
   name: string
 }
 
-export type MatchStatus = "pending" | "approved" | "rejected"
+export type MatchStatus = "pending" | "disputed" | "approved" | "rejected"
 
 export type MatchRecord = {
   id: string
   home_team_id: string
   away_team_id: string
-  home_score: number
-  away_score: number
+  /** Official result — set when status is approved (auto-match or admin). */
+  home_score: number | null
+  away_score: number | null
+  p1_home_score: number | null
+  p1_away_score: number | null
+  p2_home_score: number | null
+  p2_away_score: number | null
   screenshot_path: string | null
-  submitted_by: string
+  submitted_by: string | null
+  submitted_by_p1: string | null
+  submitted_by_p2: string | null
   status: MatchStatus
   admin_note: string | null
   created_at: string
   approved_at: string | null
+  verified_at: string | null
   reviewed_by: string | null
 }
 
@@ -149,19 +157,23 @@ export async function getLeagueTable() {
     const away = rows[match.away_team_id]
     if (!home || !away) continue
 
+    const homeGoals = match.home_score
+    const awayGoals = match.away_score
+    if (homeGoals == null || awayGoals == null) continue
+
     home.played += 1
     away.played += 1
 
-    home.goalsFor += match.home_score
-    home.goalsAgainst += match.away_score
-    away.goalsFor += match.away_score
-    away.goalsAgainst += match.home_score
+    home.goalsFor += homeGoals
+    home.goalsAgainst += awayGoals
+    away.goalsFor += awayGoals
+    away.goalsAgainst += homeGoals
 
-    if (match.home_score > match.away_score) {
+    if (homeGoals > awayGoals) {
       home.won += 1
       away.lost += 1
       home.points += 3
-    } else if (match.home_score < match.away_score) {
+    } else if (homeGoals < awayGoals) {
       away.won += 1
       home.lost += 1
       away.points += 3

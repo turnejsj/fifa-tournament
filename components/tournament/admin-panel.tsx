@@ -12,19 +12,19 @@ type Props = {
   currentUserId: string
   profiles: AdminProfileRow[]
   teams: Team[]
-  pendingMatches: ReactNode
+  disputedMatches: ReactNode
 }
 
-export function AdminPanel({ currentUserId, profiles, teams, pendingMatches }: Props) {
+export function AdminPanel({ currentUserId, profiles, teams, disputedMatches }: Props) {
   return (
     <div className="flex flex-col gap-6">
-      <Tabs defaultValue="pending" className="w-full gap-4">
+      <Tabs defaultValue="disputed" className="w-full gap-4">
         <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-zinc-900/80 p-1 sm:w-auto">
           <TabsTrigger
-            value="pending"
+            value="disputed"
             className="data-[state=active]:bg-[#00F081] data-[state=active]:text-black"
           >
-            Pending matches
+            Disputed matches
           </TabsTrigger>
           <TabsTrigger
             value="admins"
@@ -40,8 +40,8 @@ export function AdminPanel({ currentUserId, profiles, teams, pendingMatches }: P
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pending" className="mt-0 space-y-4">
-          {pendingMatches}
+        <TabsContent value="disputed" className="mt-0 space-y-4">
+          {disputedMatches}
         </TabsContent>
 
         <TabsContent value="admins" className="mt-0">
