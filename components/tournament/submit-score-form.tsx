@@ -15,7 +15,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
-import { parseScoreboardForForm } from "@/lib/parse-scoreline-from-ocr"
+import {
+  cleanupOcrText,
+  parseScoreboardForForm,
+} from "@/lib/parse-scoreline-from-ocr"
 
 type TeamOption = { id: string; name: string }
 
@@ -115,11 +118,14 @@ export function SubmitScoreForm({
       const worker = await createWorker("eng")
       try {
         const { data } = await worker.recognize(imageDataUrl)
-        const filled = parseScoreboardForForm(data.text, teams, playerTeamName)
+        const rawText = data.text
+        const filled = parseScoreboardForForm(rawText, teams, playerTeamName)
 
         if (!filled) {
+          console.log("[OCR Scan] Raw Tesseract text:", rawText)
+          console.log("[OCR Scan] Cleaned text:", cleanupOcrText(rawText))
           setScanError(
-            "Could not read the scoreboard bar (TEAM 2 - 1 TEAM). Frame the top scoreline and try again.",
+            "Could not read the scoreboard. Align the top bar in the green box and try again.",
           )
           return
         }
