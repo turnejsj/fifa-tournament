@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
 import { TournamentNavbar } from "@/components/tournament/navbar"
 import { SubmitScoreForm } from "@/components/tournament/submit-score-form"
-import { getTeams } from "@/lib/tournament-store"
+import { createServiceSupabaseClient, getTeams } from "@/lib/tournament-store"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 /** Dropdown options must match the current `teams` table in Supabase. */
@@ -18,6 +18,20 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
   const params = await searchParams
 
   const teams = await getTeams()
+
+  let playerTeamName: string | null = null
+  try {
+    const supabase = createServiceSupabaseClient()
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("tournament_team")
+      .eq("id", userId)
+      .maybeSingle()
+    playerTeamName =
+      typeof profile?.tournament_team === "string" ? profile.tournament_team.trim() : null
+  } catch {
+    playerTeamName = null
+  }
 
   return (
     <div className="min-h-screen min-w-0 bg-[#050505]">
@@ -37,7 +51,10 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
             )}
           </CardHeader>
           <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-            <SubmitScoreForm teams={teams.map((t) => ({ id: t.id, name: t.name }))} />
+            <SubmitScoreForm
+              teams={teams.map((t) => ({ id: t.id, name: t.name }))}
+              playerTeamName={playerTeamName}
+            />
           </CardContent>
         </Card>
       </main>

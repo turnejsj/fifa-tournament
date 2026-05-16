@@ -15,14 +15,22 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
-import { parseScorelineFromOcr } from "@/lib/parse-scoreline-from-ocr"
+import { parseScoreboardForForm } from "@/lib/parse-scoreline-from-ocr"
 
 type TeamOption = { id: string; name: string }
 
 const SELECT_CLASS =
   "h-10 w-full rounded-md border border-input bg-[#090909] px-3 text-sm"
 
-export function SubmitScoreForm({ teams }: { teams: TeamOption[] }) {
+export function SubmitScoreForm({
+  teams,
+  playerTeamName,
+}: {
+  teams: TeamOption[]
+  playerTeamName: string | null
+}) {
+  const [homeTeam, setHomeTeam] = useState("")
+  const [awayTeam, setAwayTeam] = useState("")
   const [homeScore, setHomeScore] = useState("")
   const [awayScore, setAwayScore] = useState("")
   const [scanOpen, setScanOpen] = useState(false)
@@ -106,24 +114,26 @@ export function SubmitScoreForm({ teams }: { teams: TeamOption[] }) {
       const { createWorker } = await import("tesseract.js")
       const worker = await createWorker("eng")
       try {
-        await worker.setParameters({
-          tessedit_char_whitelist: "0123456789:-–—| ",
-        })
         const { data } = await worker.recognize(imageDataUrl)
-        const parsed = parseScorelineFromOcr(data.text)
+        const filled = parseScoreboardForForm(data.text, teams, playerTeamName)
 
-        if (!parsed) {
+        if (!filled) {
           setScanError(
-            "Could not read a scoreline. Frame the score (e.g. 2 - 1) and try again, or enter scores manually.",
+            "Could not read the scoreboard bar (TEAM 2 - 1 TEAM). Frame the top scoreline and try again.",
           )
           return
         }
 
-        setHomeScore(String(parsed.homeScore))
-        setAwayScore(String(parsed.awayScore))
+        setHomeTeam(filled.homeTeamId)
+        setAwayTeam(filled.awayTeamId)
+        setHomeScore(String(filled.homeScore))
+        setAwayScore(String(filled.awayScore))
         setScanOpen(false)
-        toast.success(`Scores detected: ${parsed.homeScore} – ${parsed.awayScore}`, {
-          description: "Double-check the numbers, then submit.",
+
+        const homeName = teams.find((t) => t.id === filled.homeTeamId)?.name ?? "Home"
+        const awayName = teams.find((t) => t.id === filled.awayTeamId)?.name ?? "Away"
+        toast.success(`${homeName} ${filled.homeScore} – ${filled.awayScore} ${awayName}`, {
+          description: "Double-check teams and scores, then submit.",
         })
       } finally {
         await worker.terminate()
@@ -133,14 +143,21 @@ export function SubmitScoreForm({ teams }: { teams: TeamOption[] }) {
     } finally {
       setProcessing(false)
     }
-  }, [cameraReady])
+  }, [cameraReady, teams, playerTeamName])
 
   return (
     <form action="/api/matches/submit" method="post" className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="homeTeam">Home Team</Label>
-          <select id="homeTeam" name="homeTeam" className={SELECT_CLASS} required>
+          <select
+            id="homeTeam"
+            name="homeTeam"
+            className={SELECT_CLASS}
+            value={homeTeam}
+            onChange={(e) => setHomeTeam(e.target.value)}
+            required
+          >
             <option value="">Select team</option>
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -151,7 +168,14 @@ export function SubmitScoreForm({ teams }: { teams: TeamOption[] }) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="awayTeam">Away Team</Label>
-          <select id="awayTeam" name="awayTeam" className={SELECT_CLASS} required>
+          <select
+            id="awayTeam"
+            name="awayTeam"
+            className={SELECT_CLASS}
+            value={awayTeam}
+            onChange={(e) => setAwayTeam(e.target.value)}
+            required
+          >
             <option value="">Select team</option>
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -216,8 +240,8 @@ export function SubmitScoreForm({ teams }: { teams: TeamOption[] }) {
               Scan TV Screen
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Point your camera at the on-screen scoreline. We will read the numbers and fill in
-              home and away scores.
+              Frame the top scoreboard bar (e.g. MANCHESTER CITY 2 - 1 LIVERPOOL). Teams and scores
+              will fill in automatically.
             </DialogDescription>
           </DialogHeader>
 
@@ -234,7 +258,14 @@ export function SubmitScoreForm({ teams }: { teams: TeamOption[] }) {
               </div>
             )}
             {cameraReady && (
-              <div className="pointer-events-none absolute inset-6 rounded-md border-2 border-dashed border-[#00F081]/60" />
+              <div className="pointer-events-none absolute inset-0">
+                <div className="absolute inset-x-0 top-1/3 bottom-0 bg-black/45" />
+                <div className="absolute inset-x-3 top-0 h-1/3 border border-[#00F081]">
+                  <p className="absolute inset-x-2 bottom-2 text-center text-xs font-medium tracking-wide text-[#00F081] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+                    Align the scoreboard here
+                  </p>
+                </div>
+              </div>
             )}
           </div>
 
