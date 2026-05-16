@@ -13,7 +13,7 @@ const SELECT_CLASS =
   "h-12 w-full rounded-md border border-input bg-[#090909] px-3 text-sm text-zinc-100"
 
 const COUNTER_BTN =
-  "flex size-14 shrink-0 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-2xl font-semibold text-white transition-colors active:bg-zinc-800 disabled:pointer-events-none disabled:opacity-40"
+  "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-xl text-white transition-colors active:bg-zinc-700 disabled:pointer-events-none disabled:opacity-40"
 
 function normalizeTeamKey(name: string): string {
   return name.toUpperCase().replace(/[^A-Z0-9]/g, "")
@@ -38,11 +38,11 @@ function ScoreCounter({
   max?: number
 }) {
   return (
-    <div className="flex flex-col items-center gap-2">
-      <span className="line-clamp-2 min-h-[2.5rem] px-1 text-center text-xs font-medium text-zinc-400">
+    <div className="flex min-w-0 w-full flex-col items-center justify-center gap-3">
+      <span className="line-clamp-2 w-full px-1 text-center text-xs font-medium text-zinc-400">
         {label}
       </span>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center gap-3">
         <button
           type="button"
           className={COUNTER_BTN}
@@ -50,10 +50,10 @@ function ScoreCounter({
           disabled={value <= 0}
           onClick={() => onChange(Math.max(0, value - 1))}
         >
-          <Minus className="size-6" />
+          <Minus className="size-5" />
         </button>
         <span
-          className="min-w-[3.5rem] text-center text-5xl font-bold tabular-nums tracking-tight text-white"
+          className="w-8 shrink-0 text-center text-3xl font-bold tabular-nums text-white sm:text-4xl"
           aria-live="polite"
         >
           {value}
@@ -65,7 +65,7 @@ function ScoreCounter({
           disabled={value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
         >
-          <Plus className="size-6" />
+          <Plus className="size-5" />
         </button>
       </div>
     </div>
@@ -162,7 +162,7 @@ export function SubmitScoreForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 rounded-xl border border-border bg-[#090909]/80 p-4">
+      <div className="grid w-full grid-cols-2 gap-4 px-2">
         <ScoreCounter label={playerTeam.name} value={homeScore} onChange={setHomeScore} />
         <ScoreCounter
           label={opponentTeam?.name ?? "Opponent"}
