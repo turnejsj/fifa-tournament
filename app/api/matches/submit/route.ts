@@ -9,11 +9,27 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/", request.url))
   }
 
-  const formData = await request.formData()
-  const homeTeam = String(formData.get("homeTeam") ?? "")
-  const awayTeam = String(formData.get("awayTeam") ?? "")
-  const homeScore = Number(formData.get("homeScore"))
-  const awayScore = Number(formData.get("awayScore"))
+  const contentType = request.headers.get("content-type") ?? ""
+  const wantsJson = contentType.includes("application/json")
+
+  let homeTeam = ""
+  let awayTeam = ""
+  let homeScore = NaN
+  let awayScore = NaN
+
+  if (wantsJson) {
+    const body = (await request.json()) as Record<string, unknown>
+    homeTeam = String(body.homeTeam ?? "")
+    awayTeam = String(body.awayTeam ?? "")
+    homeScore = Number(body.homeScore)
+    awayScore = Number(body.awayScore)
+  } else {
+    const formData = await request.formData()
+    homeTeam = String(formData.get("homeTeam") ?? "")
+    awayTeam = String(formData.get("awayTeam") ?? "")
+    homeScore = Number(formData.get("homeScore"))
+    awayScore = Number(formData.get("awayScore"))
+  }
 
   if (!homeTeam || !awayTeam || homeTeam === awayTeam) {
     return NextResponse.json({ error: "Choose two different teams." }, { status: 400 })
@@ -84,5 +100,11 @@ export async function POST(request: Request) {
 
   revalidatePath("/")
   revalidatePath("/admin")
+  revalidatePath("/submit-score")
+
+  if (wantsJson) {
+    return NextResponse.json({ ok: true })
+  }
+
   return NextResponse.redirect(new URL("/submit-score?submitted=1", request.url))
 }

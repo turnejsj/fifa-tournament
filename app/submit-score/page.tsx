@@ -41,8 +41,8 @@ export default async function SubmitScorePage({ searchParams }: SubmitScorePageP
           <CardHeader className="space-y-2 p-4 sm:p-6">
             <CardTitle className="text-lg text-white sm:text-xl">Submit Match Score</CardTitle>
             <p className="text-sm text-zinc-400">
-              Enter the result for your match. Your opponent will see it on their dashboard and can
-              approve or dispute it. Use Scan TV Screen to fill scores from the broadcast.
+              Pick your opponent, tap the scores, and submit. Your opponent will sign off on their
+              dashboard.
             </p>
             {params.submitted === "1" && (
               <p className="rounded-md border border-[#00F081]/30 bg-[#00F081]/10 px-3 py-2 text-sm text-[#00F081]">
