@@ -55,12 +55,33 @@ function ordinal(n: number): string {
   return `${n}th`
 }
 
-function buildStandingsWhatsAppMessage(rows: LeagueRow[], pageUrl: string): string {
-  const standings =
-    rows.length === 0
-      ? "Current Standings: no teams on the board yet."
-      : `Current Standings: ${rows.map((r, i) => `${ordinal(i + 1)} ${r.team} - ${r.points}pts`).join(", ")}`
-  return `${standings} Check it out here: ${pageUrl}`
+const LIVE_TABLE_URL = "https://fifa-tournament-7axt.vercel.app/"
+
+function positionEmoji(rank: number): string {
+  if (rank === 1) return "🥇"
+  if (rank === 2) return "🥈"
+  if (rank === 3) return "🥉"
+  if (rank >= 4 && rank <= 15) return "⚽"
+  return "⚽"
+}
+
+function buildStandingsWhatsAppMessage(rows: LeagueRow[]): string {
+  const header = "🏆 *EA FC 26 TOURNAMENT STANDINGS* 🏆\n\n"
+  const link = `📱 _Live Table:_ ${LIVE_TABLE_URL}\n\n`
+
+  if (rows.length === 0) {
+    return `${header}${link}_No teams on the board yet._`
+  }
+
+  const standings = rows
+    .map((row, index) => {
+      const rank = index + 1
+      const emoji = positionEmoji(rank)
+      return `${emoji} *${ordinal(rank)}* - ${row.team} (${row.points} pts)`
+    })
+    .join("\n")
+
+  return `${header}${link}${standings}`
 }
 
 /** Solid backdrop for any letterboxing in the PNG (matches page card tone). */
@@ -145,11 +166,7 @@ export function LeagueTable({ rows }: LeagueTableProps) {
   }, [])
 
   const openWhatsAppText = useCallback(() => {
-    const url =
-      typeof window !== "undefined" && window.location?.href
-        ? window.location.href
-        : ""
-    const message = buildStandingsWhatsAppMessage(rows, url || "(open this site to copy the link)")
+    const message = buildStandingsWhatsAppMessage(rows)
     const wa = `https://wa.me/?text=${encodeURIComponent(message)}`
     window.open(wa, "_blank", "noopener,noreferrer")
   }, [rows])
