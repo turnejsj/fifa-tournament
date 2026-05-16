@@ -208,3 +208,69 @@ export function parseScoreboardForForm(
   if (!parsed) return null
   return applyScoreboardToForm(parsed, teams, playerTeamName)
 }
+
+export type OcrScanResult = {
+  complete: boolean
+  homeTeamId: string
+  awayTeamId: string
+  homeScore: number | null
+  awayScore: number | null
+}
+
+/**
+ * Full parse when possible; otherwise return any confident scores/teams so the
+ * player can verify manually instead of hitting a hard error.
+ */
+export function parseOcrScanResult(
+  rawText: string,
+  teams: TeamOption[],
+  playerTeamName: string | null,
+): OcrScanResult {
+  const full = parseScoreboardForForm(rawText, teams, playerTeamName)
+  if (full) {
+    return {
+      complete: true,
+      homeTeamId: full.homeTeamId,
+      awayTeamId: full.awayTeamId,
+      homeScore: full.homeScore,
+      awayScore: full.awayScore,
+    }
+  }
+
+  const cleaned = cleanupOcrText(rawText)
+  const scores = extractScorePair(cleaned)
+  const teamHits = findTeamsInOcrText(cleaned, teams)
+
+  let homeTeamId = ""
+  let awayTeamId = ""
+  let homeScore: number | null = scores?.first ?? null
+  let awayScore: number | null = scores?.second ?? null
+
+  if (teamHits.length >= 2) {
+    homeTeamId = teamHits[0].team.id
+    awayTeamId = teamHits[1].team.id
+  } else if (teamHits.length === 1) {
+    homeTeamId = teamHits[0].team.id
+  }
+
+  if (playerTeamName?.trim() && homeScore !== null && awayScore !== null) {
+    const playerTeam = playerTeamName.trim()
+    const firstIsPlayer = teamNamesMatch(teamHits[0]?.team.name ?? "", playerTeam)
+    const secondIsPlayer =
+      teamHits.length >= 2 && teamNamesMatch(teamHits[1]?.team.name ?? "", playerTeam)
+
+    if (secondIsPlayer && !firstIsPlayer) {
+      const tmp = homeScore
+      homeScore = awayScore
+      awayScore = tmp
+    }
+  }
+
+  return {
+    complete: false,
+    homeTeamId,
+    awayTeamId,
+    homeScore,
+    awayScore,
+  }
+}
